@@ -358,7 +358,8 @@
                     value="https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales"
                 >
                 <button onclick="saveConfig()">💾 Guardar y Conectar</button>
-                <button onclick="loadData()" style="background: #10b981;">🔄 Actualizar Datos</button>
+                <button onclick="loadData()" style="background: #10b981;">🔄 Actualizar Ahora</button>
+                <button onclick="toggleAutoRefresh()" id="btnAutoRefresh" style="background: #8b5cf6;">⏱️ Auto: ON (30s)</button>
             </div>
         </div>
 
@@ -381,6 +382,9 @@
     <script>
         let allData = {};
         let firebaseUrl = localStorage.getItem('firebaseUrl') || '';
+        let autoRefreshEnabled = true;
+        let autoRefreshInterval = 30; // segundos
+        let refreshTimer = null;
 
         // Cargar configuración guardada
         window.onload = function() {
@@ -401,6 +405,32 @@
             localStorage.setItem('firebaseUrl', firebaseUrl);
             alert('✓ Configuración guardada');
             loadData();
+        }
+
+        // Toggle auto-refresh
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            const btn = document.getElementById('btnAutoRefresh');
+            
+            if (autoRefreshEnabled) {
+                btn.textContent = `⏱️ Auto: ON (${autoRefreshInterval}s)`;
+                btn.style.background = '#8b5cf6';
+                scheduleRefresh();
+            } else {
+                btn.textContent = '⏱️ Auto: OFF';
+                btn.style.background = '#6b7280';
+                if (refreshTimer) clearTimeout(refreshTimer);
+            }
+        }
+
+        // Programar siguiente actualización
+        function scheduleRefresh() {
+            if (refreshTimer) clearTimeout(refreshTimer);
+            if (autoRefreshEnabled) {
+                refreshTimer = setTimeout(() => {
+                    loadData();
+                }, autoRefreshInterval * 1000);
+            }
         }
 
         // Cargar datos desde Firebase
@@ -426,8 +456,8 @@
                 renderData(allData);
                 updateStats(allData);
 
-                // Auto-actualizar cada 30 segundos
-                setTimeout(loadData, 30000);
+                // Programar siguiente actualización
+                scheduleRefresh();
             } catch (error) {
                 document.getElementById('content').innerHTML = `
                     <div class="error-message">
