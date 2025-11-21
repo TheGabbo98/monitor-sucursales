@@ -428,6 +428,73 @@
             background: #d97706;
             transform: scale(1.05);
         }
+
+        .mass-alert-section {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #8b5cf6;
+        }
+
+        .mass-alert-section h3 {
+            color: #374151;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .filter-chip {
+            padding: 8px 15px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .filter-chip:hover {
+            border-color: #8b5cf6;
+            background: #f3f4f6;
+        }
+
+        .filter-chip.selected {
+            background: #8b5cf6;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        .target-summary {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .target-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .target-item {
+            padding: 8px;
+            background: #f9fafb;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <body>
@@ -445,7 +512,8 @@
             <div class="config-input">
                 <button onclick="loadData()" style="background: #10b981;">🔄 Actualizar Ahora</button>
                 <button onclick="toggleAutoRefresh()" id="btnAutoRefresh" style="background: #8b5cf6;">⏱️ Auto: ON (30s)</button>
-                <span style="margin-left: auto; color: #6b7280; font-size: 14px;">
+                <button onclick="showMassAlertModal()" style="background: #ef4444; margin-left: auto;">📢 Envío Masivo de Alertas</button>
+                <span style="margin-left: 10px; color: #6b7280; font-size: 14px;">
                     📡 Conectado a Firebase
                 </span>
             </div>
@@ -776,6 +844,256 @@
         function closeAlertModal() {
             const modal = document.getElementById('alertModal');
             if (modal) modal.remove();
+            const massModal = document.getElementById('massAlertModal');
+            if (massModal) massModal.remove();
+        }
+
+        function showMassAlertModal() {
+            const modalHtml = `
+                <div id="massAlertModal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.7);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    overflow-y: auto;
+                ">
+                    <div style="
+                        background: white;
+                        padding: 30px;
+                        border-radius: 15px;
+                        box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+                        max-width: 700px;
+                        width: 90%;
+                        max-height: 90vh;
+                        overflow-y: auto;
+                    ">
+                        <h2 style="margin-bottom: 20px; color: #374151;">📢 Envío Masivo de Alertas</h2>
+                        
+                        <div class="mass-alert-section">
+                            <h3>🎯 Filtrar por Nombre de PC</h3>
+                            <div class="filter-group" id="pcNameFilters">
+                                <div class="filter-chip" onclick="togglePCFilter('ALL')">Todas las PCs</div>
+                                <div class="filter-chip" onclick="togglePCFilter('RES-PC-1')">Todas RES-PC-1</div>
+                                <div class="filter-chip" onclick="togglePCFilter('RES-PC-2')">Todas RES-PC-2</div>
+                                <div class="filter-chip" onclick="togglePCFilter('RES-PC-SERVER')">Todos Servidores</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mass-alert-section">
+                            <h3>🏪 Filtrar por Locales Específicos</h3>
+                            <p style="font-size: 13px; color: #6b7280; margin-bottom: 10px;">
+                                Ingresa los números de local separados por coma (ej: 255, 159, 33)
+                            </p>
+                            <input type="text" id="localNumbers" placeholder="255, 159, 33" style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 2px solid #e5e7eb;
+                                border-radius: 8px;
+                                font-size: 14px;
+                            ">
+                        </div>
+                        
+                        <div class="target-summary">
+                            <strong>PCs Seleccionadas: <span id="targetCount">0</span></strong>
+                            <div class="target-list" id="targetList"></div>
+                        </div>
+                        
+                        <div style="margin: 20px 0;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Tipo de alerta:</label>
+                            <select id="massAlertType" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                                <option value="Info">ℹ️ Información</option>
+                                <option value="Warning" selected>⚠️ Advertencia</option>
+                                <option value="Critical">🚨 Crítico</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Título:</label>
+                            <input type="text" id="massAlertTitle" value="ATENCIÓN: Actualización necesaria" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Mensaje:</label>
+                            <textarea id="massAlertMessage" rows="4" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;">Por favor, ejecuta la actualización del sistema que se encuentra en el escritorio.</textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="closeAlertModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                                Cancelar
+                            </button>
+                            <button onclick="confirmMassAlert()" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                                📤 Enviar a PCs Seleccionadas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            updateMassAlertTargets();
+            
+            // Event listeners para actualizar en tiempo real
+            document.getElementById('localNumbers').addEventListener('input', updateMassAlertTargets);
+        }
+
+        let selectedPCFilter = null;
+
+        function togglePCFilter(filter) {
+            const chips = document.querySelectorAll('#pcNameFilters .filter-chip');
+            chips.forEach(chip => chip.classList.remove('selected'));
+            
+            if (selectedPCFilter === filter) {
+                selectedPCFilter = null;
+            } else {
+                selectedPCFilter = filter;
+                event.target.classList.add('selected');
+            }
+            
+            updateMassAlertTargets();
+        }
+
+        function updateMassAlertTargets() {
+            const localNumbersInput = document.getElementById('localNumbers');
+            const localNumbers = localNumbersInput ? localNumbersInput.value.split(',').map(n => n.trim()).filter(n => n) : [];
+            
+            const targets = [];
+            
+            for (const [sucursalName, pcs] of Object.entries(allData)) {
+                // Filtrar por número de local si se especificó
+                if (localNumbers.length > 0) {
+                    const localId = sucursalName.replace('LOC', '');
+                    if (!localNumbers.includes(localId)) continue;
+                }
+                
+                for (const [pcName, pcData] of Object.entries(pcs)) {
+                    // Filtrar por nombre de PC
+                    if (selectedPCFilter && selectedPCFilter !== 'ALL') {
+                        if (pcName !== selectedPCFilter) continue;
+                    }
+                    
+                    targets.push({
+                        sucursal: sucursalName,
+                        pcName: pcName,
+                        pcType: pcData.pcType
+                    });
+                }
+            }
+            
+            // Actualizar contador
+            document.getElementById('targetCount').textContent = targets.length;
+            
+            // Actualizar lista
+            const targetListHtml = targets.map(t => 
+                `<div class="target-item">
+                    <span><strong>${t.sucursal}</strong> - ${t.pcName}</span>
+                    <span style="color: #6b7280;">${t.pcType}</span>
+                </div>`
+            ).join('');
+            
+            document.getElementById('targetList').innerHTML = targetListHtml || '<p style="color: #6b7280; text-align: center; padding: 20px;">No hay PCs seleccionadas</p>';
+            
+            // Guardar targets para usar después
+            window.massAlertTargets = targets;
+        }
+
+        async function confirmMassAlert() {
+            const targets = window.massAlertTargets || [];
+            
+            if (targets.length === 0) {
+                alert('⚠️ No hay PCs seleccionadas. Ajusta los filtros.');
+                return;
+            }
+            
+            const type = document.getElementById('massAlertType').value;
+            const title = document.getElementById('massAlertTitle').value.trim();
+            const message = document.getElementById('massAlertMessage').value.trim();
+            
+            if (!title || !message) {
+                alert('⚠️ Por favor completa el título y el mensaje');
+                return;
+            }
+            
+            if (!confirm(`¿Enviar esta alerta a ${targets.length} PC(s)?`)) {
+                return;
+            }
+            
+            // Mostrar progreso
+            const modal = document.getElementById('massAlertModal');
+            modal.innerHTML = `
+                <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📤</div>
+                    <h2 style="color: #374151; margin-bottom: 10px;">Enviando alertas...</h2>
+                    <p style="color: #6b7280; margin-bottom: 20px;">Procesando <span id="progressCount">0</span> de ${targets.length}</p>
+                    <div style="width: 100%; background: #e5e7eb; border-radius: 10px; height: 20px; overflow: hidden;">
+                        <div id="progressBar" style="width: 0%; height: 100%; background: #8b5cf6; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+            `;
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (let i = 0; i < targets.length; i++) {
+                const target = targets[i];
+                
+                try {
+                    const alertData = {
+                        title: title,
+                        message: message,
+                        type: type,
+                        show: true,
+                        createdAt: new Date().toISOString(),
+                        createdBy: 'Panel Web - Envío Masivo'
+                    };
+                    
+                    const url = `https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${target.sucursal}/${target.pcName}.json`;
+                    const response = await fetch(url, {
+                        method: 'PUT',
+                        body: JSON.stringify(alertData),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+                
+                // Actualizar progreso
+                const progress = Math.round(((i + 1) / targets.length) * 100);
+                document.getElementById('progressCount').textContent = i + 1;
+                document.getElementById('progressBar').style.width = progress + '%';
+                
+                // Pequeña pausa para no saturar Firebase
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            // Mostrar resultado
+            modal.innerHTML = `
+                <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+                    <h2 style="color: #10b981; margin-bottom: 10px;">¡Alertas Enviadas!</h2>
+                    <p style="color: #6b7280; margin-bottom: 20px;">
+                        <strong>${successCount}</strong> enviadas correctamente<br>
+                        ${errorCount > 0 ? `<span style="color: #ef4444;">${errorCount} con errores</span>` : ''}
+                    </p>
+                    <p style="color: #6b7280; margin-bottom: 20px;">
+                        Las alertas se mostrarán en las PCs en los próximos 30 segundos
+                    </p>
+                    <button onclick="closeAlertModal()" style="padding: 10px 30px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                        Cerrar
+                    </button>
+                </div>
+            `;
         }
 
         async function confirmSendAlert(sucursal, pcName) {
