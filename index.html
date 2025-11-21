@@ -394,17 +394,38 @@
             background: #ef4444;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             margin-top: 10px;
             transition: all 0.3s;
+            display: inline-block;
         }
 
         .delete-btn:hover {
             background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .alert-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-left: 10px;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .alert-btn:hover {
+            background: #d97706;
             transform: scale(1.05);
         }
     </style>
@@ -637,12 +658,14 @@
                                     <span class="info-value">${pcData.timestamp}</span>
                                 </div>
                                 
-                                <button class="delete-btn" onclick="deleteFromFirebase('${sucursalName}', '${pcName}')">
-                                    🗑️ Eliminar del Panel
-                                </button>
-                                <button class="delete-btn" onclick="sendAlert('${sucursalName}', '${pcName}')" style="background: #f59e0b; margin-left: 10px;">
-                                    📢 Enviar Alerta a esta PC
-                                </button>
+                                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                    <button class="delete-btn" onclick="deleteFromFirebase('${sucursalName}', '${pcName}')">
+                                        🗑️ Eliminar del Panel
+                                    </button>
+                                    <button class="alert-btn" onclick="sendAlert('${sucursalName}', '${pcName}')">
+                                        📢 Enviar Alerta
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="last-update">
@@ -688,6 +711,134 @@
                 }
             } catch (error) {
                 alert(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function sendAlert(sucursal, pcName) {
+            // Crear formulario de alerta más amigable
+            const modalHtml = `
+                <div id="alertModal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.7);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                ">
+                    <div style="
+                        background: white;
+                        padding: 30px;
+                        border-radius: 15px;
+                        box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+                        max-width: 500px;
+                        width: 90%;
+                    ">
+                        <h2 style="margin-bottom: 20px; color: #374151;">📢 Enviar Alerta a ${pcName}</h2>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Tipo de alerta:</label>
+                            <select id="alertType" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                                <option value="Info">ℹ️ Información</option>
+                                <option value="Warning" selected>⚠️ Advertencia</option>
+                                <option value="Critical">🚨 Crítico</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Título:</label>
+                            <input type="text" id="alertTitle" value="ATENCIÓN: Actualización necesaria" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Mensaje:</label>
+                            <textarea id="alertMessage" rows="4" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;">Por favor, ejecuta la actualización del sistema que se encuentra en el escritorio.</textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="closeAlertModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                                Cancelar
+                            </button>
+                            <button onclick="confirmSendAlert('${sucursal}', '${pcName}')" style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                                📤 Enviar Alerta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function closeAlertModal() {
+            const modal = document.getElementById('alertModal');
+            if (modal) modal.remove();
+        }
+
+        async function confirmSendAlert(sucursal, pcName) {
+            const type = document.getElementById('alertType').value;
+            const title = document.getElementById('alertTitle').value.trim();
+            const message = document.getElementById('alertMessage').value.trim();
+            
+            if (!title || !message) {
+                alert('⚠️ Por favor completa el título y el mensaje');
+                return;
+            }
+            
+            // Mostrar loading
+            const modal = document.getElementById('alertModal');
+            modal.innerHTML = `
+                <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📤</div>
+                    <div style="font-size: 18px; color: #374151;">Enviando alerta...</div>
+                </div>
+            `;
+            
+            try {
+                const alertData = {
+                    title: title,
+                    message: message,
+                    type: type,
+                    show: true,
+                    createdAt: new Date().toISOString(),
+                    createdBy: 'Panel Web'
+                };
+                
+                const url = `https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${sucursal}/${pcName}.json`;
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    body: JSON.stringify(alertData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    modal.innerHTML = `
+                        <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+                            <h2 style="color: #10b981; margin-bottom: 10px;">¡Alerta Enviada!</h2>
+                            <p style="color: #6b7280; margin-bottom: 20px;">La alerta se mostrará en <strong>${pcName}</strong> en los próximos 5 minutos</p>
+                            <button onclick="closeAlertModal()" style="padding: 10px 30px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                                Entendido
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                modal.innerHTML = `
+                    <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
+                        <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
+                        <h2 style="color: #ef4444; margin-bottom: 10px;">Error al enviar</h2>
+                        <p style="color: #6b7280; margin-bottom: 20px;">${error.message}</p>
+                        <button onclick="closeAlertModal()" style="padding: 10px 30px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                            Cerrar
+                        </button>
+                    </div>
+                `;
             }
         }
 
