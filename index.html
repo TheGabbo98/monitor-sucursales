@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1800px;
             margin: 0 auto;
         }
 
@@ -124,7 +124,7 @@
 
         .sucursales-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 20px;
         }
 
@@ -182,8 +182,8 @@
 
         .pc-item {
             background: #f9fafb;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 12px;
             margin-bottom: 15px;
             border-left: 4px solid #667eea;
         }
@@ -192,12 +192,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .pc-name {
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
             color: #374151;
         }
 
@@ -210,38 +210,44 @@
             font-weight: 600;
         }
 
-        .metrics {
+        .metrics-compact {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 10px;
+            gap: 15px;
+            margin: 15px 0;
         }
 
-        .metric {
+        .metric-large {
             text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .metric-label {
-            font-size: 11px;
+            font-size: 12px;
             color: #6b7280;
             text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
         }
 
-        .metric-value {
-            font-size: 18px;
+        .metric-value-large {
+            font-size: 32px;
             font-weight: bold;
             color: #1f2937;
+            margin-bottom: 5px;
         }
 
         .progress-bar {
             width: 100%;
-            height: 8px;
+            height: 10px;
             background: #e5e7eb;
             border-radius: 10px;
             overflow: hidden;
-            margin-top: 5px;
+            margin-top: 8px;
         }
 
         .progress-fill {
@@ -262,17 +268,62 @@
             background: linear-gradient(90deg, #ef4444, #f87171);
         }
 
+        .details-toggle {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .btn-details {
+            padding: 10px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-details:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
         .system-info {
             margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .system-info.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .info-row {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
             font-size: 13px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
         }
 
         .info-label {
@@ -282,6 +333,9 @@
 
         .info-value {
             color: #374151;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
         }
 
         .alerts {
@@ -290,11 +344,11 @@
 
         .alert-badge {
             display: inline-block;
-            padding: 4px 10px;
+            padding: 6px 12px;
             background: #fee2e2;
             color: #dc2626;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             margin: 3px;
         }
@@ -304,6 +358,7 @@
             color: #9ca3af;
             font-size: 12px;
             margin-top: 10px;
+            font-style: italic;
         }
 
         .loading {
@@ -334,6 +389,24 @@
             margin-bottom: 10px;
             color: #374151;
         }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -347,9 +420,8 @@
             </div>
         </header>
 
-        <!-- Panel de configuración -->
         <div class="config-panel">
-            <h3 style="margin-bottom: 10px; color: #374151;">⚙️ Configuración de Firebase</h3>
+            <h3 style="margin-bottom: 10px; color: #374151;">⚙️ Configuración</h3>
             <div class="config-input">
                 <input 
                     type="text" 
@@ -357,13 +429,12 @@
                     placeholder="https://tu-proyecto.firebaseio.com/sucursales"
                     value="https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales"
                 >
-                <button onclick="saveConfig()">💾 Guardar y Conectar</button>
-                <button onclick="loadData()" style="background: #10b981;">🔄 Actualizar Ahora</button>
+                <button onclick="saveConfig()">💾 Guardar</button>
+                <button onclick="loadData()" style="background: #10b981;">🔄 Actualizar</button>
                 <button onclick="toggleAutoRefresh()" id="btnAutoRefresh" style="background: #8b5cf6;">⏱️ Auto: ON (30s)</button>
             </div>
         </div>
 
-        <!-- Barra de búsqueda -->
         <div class="search-bar">
             <input 
                 type="text" 
@@ -373,7 +444,6 @@
             >
         </div>
 
-        <!-- Área de contenido -->
         <div id="content">
             <div class="loading">⏳ Cargando datos...</div>
         </div>
@@ -383,10 +453,9 @@
         let allData = {};
         let firebaseUrl = localStorage.getItem('firebaseUrl') || '';
         let autoRefreshEnabled = true;
-        let autoRefreshInterval = 30; // segundos
+        let autoRefreshInterval = 30;
         let refreshTimer = null;
 
-        // Cargar configuración guardada
         window.onload = function() {
             if (firebaseUrl) {
                 document.getElementById('firebaseUrl').value = firebaseUrl;
@@ -394,7 +463,6 @@
             }
         };
 
-        // Guardar configuración
         function saveConfig() {
             const url = document.getElementById('firebaseUrl').value.trim();
             if (!url) {
@@ -407,7 +475,6 @@
             loadData();
         }
 
-        // Toggle auto-refresh
         function toggleAutoRefresh() {
             autoRefreshEnabled = !autoRefreshEnabled;
             const btn = document.getElementById('btnAutoRefresh');
@@ -423,7 +490,6 @@
             }
         }
 
-        // Programar siguiente actualización
         function scheduleRefresh() {
             if (refreshTimer) clearTimeout(refreshTimer);
             if (autoRefreshEnabled) {
@@ -433,7 +499,6 @@
             }
         }
 
-        // Cargar datos desde Firebase
         async function loadData() {
             if (!firebaseUrl) {
                 document.getElementById('content').innerHTML = `
@@ -445,8 +510,6 @@
             }
 
             try {
-                document.getElementById('content').innerHTML = '<div class="loading">⏳ Cargando datos...</div>';
-
                 const response = await fetch(`${firebaseUrl}.json`);
                 if (!response.ok) throw new Error('Error al cargar datos');
 
@@ -456,19 +519,16 @@
                 renderData(allData);
                 updateStats(allData);
 
-                // Programar siguiente actualización
                 scheduleRefresh();
             } catch (error) {
                 document.getElementById('content').innerHTML = `
                     <div class="error-message">
-                        ❌ Error al cargar datos: ${error.message}<br>
-                        Verifica que la URL de Firebase sea correcta y que tenga permisos de lectura
+                        ❌ Error al cargar datos: ${error.message}
                     </div>
                 `;
             }
         }
 
-        // Renderizar datos
         function renderData(data) {
             const content = document.getElementById('content');
             
@@ -495,6 +555,7 @@
                 for (const [pcName, pcData] of Object.entries(pcs)) {
                     const isOnline = isRecent(pcData.lastUpdate);
                     const statusClass = isOnline ? 'online' : 'offline';
+                    const pcId = `${sucursalName}-${pcName}`.replace(/[^a-zA-Z0-9]/g, '-');
                     
                     html += `
                         <div class="pc-item" data-pc="${pcName}">
@@ -506,53 +567,30 @@
                                 <span class="pc-type">${pcData.pcType}</span>
                             </div>
 
-                            <div class="metrics">
-                                <div class="metric">
+                            <div class="metrics-compact">
+                                <div class="metric-large">
                                     <div class="metric-label">CPU</div>
-                                    <div class="metric-value">${pcData.cpu.usage.toFixed(1)}%</div>
+                                    <div class="metric-value-large">${pcData.cpu.usage.toFixed(0)}%</div>
                                     <div class="progress-bar">
                                         <div class="progress-fill ${getProgressClass(pcData.cpu.usage)}" 
                                              style="width: ${pcData.cpu.usage}%"></div>
                                     </div>
                                 </div>
-                                <div class="metric">
+                                <div class="metric-large">
                                     <div class="metric-label">RAM</div>
-                                    <div class="metric-value">${pcData.ram.usagePercent.toFixed(1)}%</div>
+                                    <div class="metric-value-large">${pcData.ram.usagePercent.toFixed(0)}%</div>
                                     <div class="progress-bar">
                                         <div class="progress-fill ${getProgressClass(pcData.ram.usagePercent)}" 
                                              style="width: ${pcData.ram.usagePercent}%"></div>
                                     </div>
                                 </div>
-                                <div class="metric">
-                                    <div class="metric-label">Disco</div>
-                                    <div class="metric-value">${pcData.disk.usagePercent.toFixed(1)}%</div>
+                                <div class="metric-large">
+                                    <div class="metric-label">DISCO</div>
+                                    <div class="metric-value-large">${pcData.disk.usagePercent.toFixed(0)}%</div>
                                     <div class="progress-bar">
                                         <div class="progress-fill ${getProgressClass(pcData.disk.usagePercent)}" 
                                              style="width: ${pcData.disk.usagePercent}%"></div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div class="system-info">
-                                <div class="info-row">
-                                    <span class="info-label">Procesador:</span>
-                                    <span class="info-value">${pcData.cpu.model.substring(0, 30)}...</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">RAM Total:</span>
-                                    <span class="info-value">${pcData.ram.total} GB</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Disco Total:</span>
-                                    <span class="info-value">${pcData.disk.total} GB</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Red:</span>
-                                    <span class="info-value">${pcData.network.type} - ${pcData.network.ip}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">SQL Server:</span>
-                                    <span class="info-value">${pcData.system.sqlServerRunning ? '✅ Activo' : '❌ Inactivo'}</span>
                                 </div>
                             </div>
 
@@ -562,8 +600,77 @@
                                 </div>
                             ` : ''}
 
+                            <div class="details-toggle">
+                                <button class="btn-details" onclick="toggleDetails('${pcId}')">
+                                    📊 Ver Detalles
+                                </button>
+                            </div>
+
+                            <div class="system-info" id="details-${pcId}">
+                                <div class="info-row">
+                                    <span class="info-label">💻 Procesador:</span>
+                                    <span class="info-value">${pcData.cpu.model}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🔢 Núcleos / Hilos:</span>
+                                    <span class="info-value">${pcData.cpu.cores} núcleos / ${pcData.cpu.threads} hilos</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🧠 RAM Total:</span>
+                                    <span class="info-value">${pcData.ram.total} GB (${pcData.ram.used} GB usado)</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">💾 Disco Total:</span>
+                                    <span class="info-value">${pcData.disk.total} GB (${pcData.disk.free} GB libre)</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🌐 Red:</span>
+                                    <span class="info-value">${pcData.network.type}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">📡 IP:</span>
+                                    <span class="info-value">${pcData.network.ip}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🔧 MAC Address:</span>
+                                    <span class="info-value">${pcData.network.macAddress || 'N/A'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🪟 Sistema Operativo:</span>
+                                    <span class="info-value">${pcData.system.os}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">📦 Versión OS:</span>
+                                    <span class="info-value">${pcData.system.osVersion}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🏭 Fabricante:</span>
+                                    <span class="info-value">${pcData.system.manufacturer}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🖥️ Modelo:</span>
+                                    <span class="info-value">${pcData.system.model}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🔑 Serial:</span>
+                                    <span class="info-value">${pcData.system.serialNumber}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">💿 SQL Server:</span>
+                                    <span class="info-value">${pcData.system.sqlServerRunning ? '✅ Activo' : '❌ Inactivo'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🕐 Última actualización:</span>
+                                    <span class="info-value">${pcData.timestamp}</span>
+                                </div>
+                                
+                                <button class="delete-btn" onclick="deleteFromFirebase('${sucursalName}', '${pcName}')">
+                                    🗑️ Eliminar del Panel
+                                </button>
+                            </div>
+
                             <div class="last-update">
-                                Última actualización: ${formatTime(pcData.lastUpdate)}
+                                Actualizado: ${formatTime(pcData.lastUpdate)}
                             </div>
                         </div>
                     `;
@@ -576,7 +683,38 @@
             content.innerHTML = html;
         }
 
-        // Actualizar estadísticas del header
+        function toggleDetails(pcId) {
+            const details = document.getElementById(`details-${pcId}`);
+            details.classList.toggle('show');
+            
+            const btn = event.target;
+            if (details.classList.contains('show')) {
+                btn.textContent = '📊 Ocultar Detalles';
+            } else {
+                btn.textContent = '📊 Ver Detalles';
+            }
+        }
+
+        async function deleteFromFirebase(sucursal, pcName) {
+            if (!confirm(`¿Eliminar ${pcName} de ${sucursal} del panel?\n\nEsto NO desinstala el agente, solo elimina los datos de Firebase.`)) {
+                return;
+            }
+
+            try {
+                const url = `${firebaseUrl}/${sucursal}/${pcName}.json`;
+                const response = await fetch(url, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    alert('✓ PC eliminada del panel correctamente');
+                    loadData();
+                } else {
+                    alert('❌ Error al eliminar. Verifica los permisos de Firebase.');
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+
         function updateStats(data) {
             let onlineCount = 0;
             let offlineCount = 0;
@@ -600,7 +738,6 @@
             document.getElementById('totalAlerts').textContent = `${alertsCount} Alertas`;
         }
 
-        // Filtrar datos por búsqueda
         function filterData() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.querySelectorAll('.sucursal-card');
@@ -624,13 +761,11 @@
             });
         }
 
-        // Verificar si los datos son recientes (últimos 15 minutos)
         function isRecent(timestamp) {
             const now = Math.floor(Date.now() / 1000);
-            return (now - timestamp) < 900; // 15 minutos
+            return (now - timestamp) < 900;
         }
 
-        // Formatear tiempo
         function formatTime(timestamp) {
             const date = new Date(timestamp * 1000);
             const now = new Date();
@@ -642,7 +777,6 @@
             return date.toLocaleString('es-AR');
         }
 
-        // Obtener clase de progreso según porcentaje
         function getProgressClass(percent) {
             if (percent < 70) return 'low';
             if (percent < 90) return 'medium';
