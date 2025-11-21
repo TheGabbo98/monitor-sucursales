@@ -421,17 +421,12 @@
         </header>
 
         <div class="config-panel">
-            <h3 style="margin-bottom: 10px; color: #374151;">⚙️ Configuración</h3>
             <div class="config-input">
-                <input 
-                    type="text" 
-                    id="firebaseUrl" 
-                    placeholder="https://tu-proyecto.firebaseio.com/sucursales"
-                    value="https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales"
-                >
-                <button onclick="saveConfig()">💾 Guardar</button>
-                <button onclick="loadData()" style="background: #10b981;">🔄 Actualizar</button>
+                <button onclick="loadData()" style="background: #10b981;">🔄 Actualizar Ahora</button>
                 <button onclick="toggleAutoRefresh()" id="btnAutoRefresh" style="background: #8b5cf6;">⏱️ Auto: ON (30s)</button>
+                <span style="margin-left: auto; color: #6b7280; font-size: 14px;">
+                    📡 Conectado a Firebase
+                </span>
             </div>
         </div>
 
@@ -450,30 +445,17 @@
     </div>
 
     <script>
+        // URL de Firebase HARDCODEADA (no se puede cambiar desde la interfaz)
+        const firebaseUrl = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales';
+        
         let allData = {};
-        let firebaseUrl = localStorage.getItem('firebaseUrl') || '';
         let autoRefreshEnabled = true;
         let autoRefreshInterval = 30;
         let refreshTimer = null;
 
         window.onload = function() {
-            if (firebaseUrl) {
-                document.getElementById('firebaseUrl').value = firebaseUrl;
-                loadData();
-            }
-        };
-
-        function saveConfig() {
-            const url = document.getElementById('firebaseUrl').value.trim();
-            if (!url) {
-                alert('Por favor ingresa una URL válida');
-                return;
-            }
-            firebaseUrl = url;
-            localStorage.setItem('firebaseUrl', firebaseUrl);
-            alert('✓ Configuración guardada');
             loadData();
-        }
+        };
 
         function toggleAutoRefresh() {
             autoRefreshEnabled = !autoRefreshEnabled;
@@ -500,15 +482,6 @@
         }
 
         async function loadData() {
-            if (!firebaseUrl) {
-                document.getElementById('content').innerHTML = `
-                    <div class="error-message">
-                        ⚠️ Por favor configura la URL de Firebase arriba
-                    </div>
-                `;
-                return;
-            }
-
             try {
                 const response = await fetch(`${firebaseUrl}.json`);
                 if (!response.ok) throw new Error('Error al cargar datos');
@@ -666,6 +639,9 @@
                                 
                                 <button class="delete-btn" onclick="deleteFromFirebase('${sucursalName}', '${pcName}')">
                                     🗑️ Eliminar del Panel
+                                </button>
+                                <button class="delete-btn" onclick="sendAlert('${sucursalName}', '${pcName}')" style="background: #f59e0b; margin-left: 10px;">
+                                    📢 Enviar Alerta a esta PC
                                 </button>
                             </div>
 
