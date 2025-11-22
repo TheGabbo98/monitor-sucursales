@@ -1019,7 +1019,7 @@
                 return;
             }
             
-            if (!confirm(`¿Enviar esta alerta a ${targets.length} PC(s)?`)) {
+            if (!confirm(`¿Enviar esta alerta a ${targets.length} PC(s)?\n\nSe auto-desactivará en 2 minutos.`)) {
                 return;
             }
             
@@ -1049,7 +1049,8 @@
                         type: type,
                         show: true,
                         createdAt: new Date().toISOString(),
-                        createdBy: 'Panel Web - Envío Masivo'
+                        createdBy: 'Panel Web - Envío Masivo',
+                        autoExpireAt: Date.now() + (120 * 1000)
                     };
                     
                     const url = `https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${target.sucursal}/${target.pcName}.json`;
@@ -1061,6 +1062,8 @@
                     
                     if (response.ok) {
                         successCount++;
+                        // Programar auto-desactivación para cada PC
+                        scheduleAutoDisable(target.sucursal, target.pcName, 120000);
                     } else {
                         errorCount++;
                     }
@@ -1086,8 +1089,9 @@
                         <strong>${successCount}</strong> enviadas correctamente<br>
                         ${errorCount > 0 ? `<span style="color: #ef4444;">${errorCount} con errores</span>` : ''}
                     </p>
-                    <p style="color: #6b7280; margin-bottom: 20px;">
-                        Las alertas se mostrarán en las PCs en los próximos 30 segundos
+                    <p style="color: #f59e0b; margin-bottom: 20px;">
+                        ⏱️ Las alertas se mostrarán en los próximos 30 segundos<br>
+                        y se auto-desactivarán en 2 minutos
                     </p>
                     <button onclick="closeAlertModal()" style="padding: 10px 30px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
                         Cerrar
