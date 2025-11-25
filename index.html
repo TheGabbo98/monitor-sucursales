@@ -1460,35 +1460,7 @@
             });
         }
 
-        async function checkNotificationStatus(data) {
-            try {
-                const response = await fetch('https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications.json');
-                const notifications = await response.json();
-                
-                if (!notifications) return;
-                
-                for (const [sucursalName, pcs] of Object.entries(data)) {
-                    for (const [pcName, pcData] of Object.entries(pcs)) {
-                        const pcId = `${sucursalName}-${pcName}`.replace(/[^a-zA-Z0-9]/g, '-');
-                        const indicator = document.getElementById(`notif-indicator-${pcId}`);
-                        
-                        if (indicator && notifications[sucursalName] && notifications[sucursalName][pcName]) {
-                            const notif = notifications[sucursalName][pcName];
-                            
-                            if (notif.show === false) {
-                                // Ya fue vista
-                                indicator.innerHTML = '<span style="background: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;">✓ Vista</span>';
-                            } else {
-                                // Pendiente
-                                indicator.innerHTML = '<span style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; animation: pulse 2s infinite;">⏳ Pendiente</span>';
-                            }
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error verificando notificaciones:', error);
-            }
-        }
+        function isRecent(timestamp) {
             const now = Math.floor(Date.now() / 1000);
             return (now - timestamp) < 900;
         }
