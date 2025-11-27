@@ -713,9 +713,12 @@
                                 </div>
                                 <div class="metric-large">
                                     <div class="metric-label">💽 SALUD DISCO</div>
-                                    <div class="metric-value-large" style="font-size: 18px; color: ${pcData.disk.healthStatus === 'Healthy' ? '#10b981' : pcData.disk.healthStatus === 'Warning' ? '#f59e0b' : pcData.disk.healthStatus === 'Critical' ? '#ef4444' : '#9ca3af'}">
-                                        ${pcData.disk.healthStatus || 'N/A'}
-                                        ${pcData.disk.healthPercent ? '<br><span style="font-size: 14px;">' + pcData.disk.healthPercent + '% vida</span>' : ''}
+                                    <div class="metric-value-large" style="font-size: 24px; color: ${pcData.disk.healthPercent ? (pcData.disk.healthPercent >= 70 ? '#10b981' : pcData.disk.healthPercent >= 30 ? '#f59e0b' : '#ef4444') : '#9ca3af'}">
+                                        ${pcData.disk.healthPercent ? pcData.disk.healthPercent + '%' : 'N/A'}
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill ${pcData.disk.healthPercent >= 70 ? 'low' : pcData.disk.healthPercent >= 30 ? 'medium' : 'high'}" 
+                                             style="width: ${pcData.disk.healthPercent || 0}%"></div>
                                     </div>
                                 </div>
                                 <div class="metric-large">
@@ -799,8 +802,8 @@
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">💽 Salud del Disco:</span>
-                                    <span class="info-value" style="color: ${pcData.disk.healthStatus === 'Healthy' ? '#10b981' : pcData.disk.healthStatus === 'Warning' ? '#f59e0b' : pcData.disk.healthStatus === 'Critical' ? '#ef4444' : '#6b7280'}">
-                                        ${pcData.disk.healthStatus || 'No disponible'} ${pcData.disk.healthPercent ? '(' + pcData.disk.healthPercent + '%)' : ''}
+                                    <span class="info-value" style="color: ${pcData.disk.healthPercent ? (pcData.disk.healthPercent >= 70 ? '#10b981' : pcData.disk.healthPercent >= 30 ? '#f59e0b' : '#ef4444') : '#6b7280'}">
+                                        ${pcData.disk.healthPercent ? pcData.disk.healthPercent + '% - ' + pcData.disk.healthStatus : 'No disponible'}
                                     </span>
                                 </div>
                                 <div class="info-row">
