@@ -713,13 +713,18 @@
                                 </div>
                                 <div class="metric-large">
                                     <div class="metric-label">💽 SALUD DISCO</div>
-                                    <div class="metric-value-large" style="font-size: 24px; color: ${pcData.disk.healthPercent ? (pcData.disk.healthPercent >= 70 ? '#10b981' : pcData.disk.healthPercent >= 30 ? '#f59e0b' : '#ef4444') : '#9ca3af'}">
-                                        ${pcData.disk.healthPercent ? pcData.disk.healthPercent + '%' : 'N/A'}
+                                    <div class="metric-value-large" style="font-size: 24px; color: ${
+                                        pcData.disk.healthStatus === 'HDD' ? '#6366f1' :
+                                        pcData.disk.healthPercent ? (pcData.disk.healthPercent >= 70 ? '#10b981' : pcData.disk.healthPercent >= 30 ? '#f59e0b' : '#ef4444') : '#9ca3af'
+                                    }">
+                                        ${pcData.disk.healthStatus === 'HDD' ? 'HDD' : (pcData.disk.healthPercent ? pcData.disk.healthPercent + '%' : 'N/A')}
                                     </div>
+                                    ${pcData.disk.healthPercent ? `
                                     <div class="progress-bar">
                                         <div class="progress-fill ${pcData.disk.healthPercent >= 70 ? 'low' : pcData.disk.healthPercent >= 30 ? 'medium' : 'high'}" 
                                              style="width: ${pcData.disk.healthPercent || 0}%"></div>
                                     </div>
+                                    ` : ''}
                                 </div>
                                 <div class="metric-large">
                                     <div class="metric-label">⏱️ UPTIME</div>
@@ -804,6 +809,12 @@
                                     <span class="info-label">💽 Salud del Disco:</span>
                                     <span class="info-value" style="color: ${pcData.disk.healthPercent ? (pcData.disk.healthPercent >= 70 ? '#10b981' : pcData.disk.healthPercent >= 30 ? '#f59e0b' : '#ef4444') : '#6b7280'}">
                                         ${pcData.disk.healthPercent ? pcData.disk.healthPercent + '% - ' + pcData.disk.healthStatus : 'No disponible'}
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">🌡️ Temperatura Disco:</span>
+                                    <span class="info-value" style="color: ${pcData.disk.temperature ? (pcData.disk.temperature > 50 ? '#ef4444' : pcData.disk.temperature > 40 ? '#f59e0b' : '#10b981') : '#6b7280'}">
+                                        ${pcData.disk.temperature ? pcData.disk.temperature + '°C' : 'No disponible'}
                                     </span>
                                 </div>
                                 <div class="info-row">
