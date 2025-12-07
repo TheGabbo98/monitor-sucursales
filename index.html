@@ -3,1565 +3,775 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Monitoreo - Sucursales</title>
+    <title>Monitor de Sucursales v4.0</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #fff;
         }
-
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-        }
-
+        
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        /* Header */
         header {
-            background: white;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
             padding: 20px 30px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
-        h1 {
-            color: #333;
-            font-size: 28px;
-        }
-
-        .header-stats {
-            display: flex;
-            gap: 20px;
-        }
-
+        
+        header h1 { font-size: 24px; }
+        
+        .header-stats { display: flex; gap: 15px; }
+        
         .stat-badge {
             padding: 8px 16px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 14px;
         }
-
-        .stat-badge.online {
-            background: #10b981;
-            color: white;
-        }
-
-        .stat-badge.offline {
-            background: #ef4444;
-            color: white;
-        }
-
-        .stat-badge.warning {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .config-panel {
-            background: white;
+        .stat-badge.online { background: #10b981; }
+        .stat-badge.offline { background: #ef4444; }
+        .stat-badge.alerts { background: #f59e0b; }
+        
+        /* Panel de Alertas */
+        .alerts-panel {
+            background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+            border-radius: 15px;
             padding: 20px;
-            border-radius: 10px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
         }
-
-        .config-input {
+        
+        .alerts-panel.show { display: block; }
+        
+        .alerts-panel h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
             display: flex;
-            gap: 10px;
             align-items: center;
-            flex-wrap: wrap;
+            gap: 10px;
         }
-
-        .config-input input {
-            flex: 1;
-            min-width: 300px;
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
+        
+        .alert-list { display: flex; flex-direction: column; gap: 8px; }
+        
+        .alert-item {
+            background: rgba(0,0,0,0.3);
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        .config-input button {
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
+        
+        .alert-item-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-
-        .config-input button:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
+        
+        .alert-item-loc { font-weight: bold; font-size: 16px; }
+        .alert-item-pc { color: rgba(255,255,255,0.7); font-size: 14px; }
+        .alert-item-msg { 
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
         }
-
+        
+        .no-alerts {
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+        }
+        
+        /* Buscador */
         .search-bar {
-            background: white;
+            background: rgba(255,255,255,0.1);
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
+        
         .search-bar input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
             font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            color: #1a1a2e;
         }
-
+        
+        /* Grid de Sucursales */
         .sucursales-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             gap: 20px;
         }
-
+        
+        /* Card de Sucursal */
         .sucursal-card {
-            background: white;
+            background: rgba(255,255,255,0.05);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-
+        
         .sucursal-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-
+        
         .sucursal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #f3f4f6;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-
-        .sucursal-name {
-            font-size: 22px;
-            font-weight: bold;
-            color: #1f2937;
-        }
-
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.online {
-            background: #10b981;
-            box-shadow: 0 0 10px #10b981;
-        }
-
-        .status-indicator.offline {
-            background: #ef4444;
-            box-shadow: 0 0 10px #ef4444;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
+        
+        .sucursal-name { font-size: 20px; font-weight: bold; }
+        
+        /* PC Item */
         .pc-item {
-            background: #f9fafb;
-            padding: 20px;
+            background: rgba(0,0,0,0.3);
             border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
         }
-
+        
         .pc-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
-
-        .pc-name {
-            font-weight: bold;
-            font-size: 18px;
-            color: #374151;
+        
+        .pc-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
         }
-
+        
+        .pc-status.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .pc-status.offline { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        
+        .pc-name { font-weight: bold; font-size: 16px; }
+        
         .pc-type {
-            font-size: 12px;
+            background: rgba(99,102,241,0.3);
             padding: 4px 10px;
-            border-radius: 12px;
-            background: #e0e7ff;
-            color: #4338ca;
-            font-weight: 600;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #a5b4fc;
         }
-
-        .metrics-compact {
+        
+        /* Metricas */
+        .metrics-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin: 15px 0;
+            gap: 10px;
+            margin-bottom: 10px;
         }
-
-        .metric-large {
-            text-align: center;
-            padding: 15px;
-            background: white;
+        
+        .metric {
+            background: rgba(255,255,255,0.05);
             border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 12px;
+            text-align: center;
         }
-
+        
         .metric-label {
-            font-size: 12px;
-            color: #6b7280;
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
             text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-        }
-
-        .metric-value-large {
-            font-size: 32px;
-            font-weight: bold;
-            color: #1f2937;
             margin-bottom: 5px;
         }
-
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: #e5e7eb;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            transition: width 0.5s ease;
-            border-radius: 10px;
-        }
-
-        .progress-fill.low {
-            background: linear-gradient(90deg, #10b981, #34d399);
-        }
-
-        .progress-fill.medium {
-            background: linear-gradient(90deg, #f59e0b, #fbbf24);
-        }
-
-        .progress-fill.high {
-            background: linear-gradient(90deg, #ef4444, #f87171);
-        }
-
-        .details-toggle {
-            margin-top: 15px;
-            text-align: center;
-        }
-
-        .btn-details {
-            padding: 10px 30px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+        
+        .metric-value {
+            font-size: 24px;
             font-weight: bold;
-            font-size: 14px;
-            transition: all 0.3s;
         }
-
-        .btn-details:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
+        
+        .metric-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
         }
-
-        .system-info {
-            margin-top: 15px;
-            padding: 15px;
-            background: white;
+        
+        .metric-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+        
+        .metric-bar-fill.low { background: #10b981; }
+        .metric-bar-fill.medium { background: #f59e0b; }
+        .metric-bar-fill.high { background: #ef4444; }
+        
+        /* Colores de valores */
+        .text-green { color: #10b981; }
+        .text-yellow { color: #f59e0b; }
+        .text-red { color: #ef4444; }
+        .text-gray { color: #9ca3af; }
+        .text-blue { color: #60a5fa; }
+        
+        /* Alertas en PC */
+        .pc-alerts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .pc-alert-badge {
+            background: rgba(239,68,68,0.3);
+            color: #fca5a5;
+            padding: 4px 10px;
             border-radius: 10px;
+            font-size: 11px;
+        }
+        
+        /* Detalles */
+        .pc-details {
             display: none;
-            animation: slideDown 0.3s ease;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
-
-        .system-info.show {
-            display: block;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .info-row {
+        
+        .pc-details.show { display: block; }
+        
+        .detail-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #f3f4f6;
+            padding: 6px 0;
             font-size: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        .info-value {
-            color: #374151;
-            text-align: right;
-            max-width: 60%;
-            word-break: break-word;
-        }
-
-        .alerts {
-            margin-top: 10px;
-        }
-
-        .alert-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            background: #fee2e2;
-            color: #dc2626;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            margin: 3px;
-        }
-
-        .last-update {
-            text-align: center;
-            color: #9ca3af;
-            font-size: 12px;
-            margin-top: 10px;
-            font-style: italic;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: white;
-            font-size: 20px;
-        }
-
-        .error-message {
-            background: #fef2f2;
-            border: 2px solid #ef4444;
-            color: #dc2626;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 60px;
-            background: white;
-            border-radius: 15px;
-            color: #6b7280;
-        }
-
-        .no-data h2 {
-            margin-bottom: 10px;
-            color: #374151;
-        }
-
-        .delete-btn {
-            background: #ef4444;
-            color: white;
+        
+        .detail-label { color: rgba(255,255,255,0.6); }
+        .detail-value { text-align: right; }
+        
+        .btn-details {
+            width: 100%;
+            padding: 10px;
+            background: rgba(99,102,241,0.3);
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: all 0.3s;
-            display: inline-block;
-        }
-
-        .delete-btn:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
-
-        .alert-btn {
-            background: #f59e0b;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 10px;
-            margin-left: 10px;
-            transition: all 0.3s;
-            display: inline-block;
-        }
-
-        .alert-btn:hover {
-            background: #d97706;
-            transform: scale(1.05);
-        }
-
-        .mass-alert-section {
-            background: #f9fafb;
-            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #8b5cf6;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
         }
-
-        .mass-alert-section h3 {
-            color: #374151;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .filter-group {
+        
+        .btn-details:hover { background: rgba(99,102,241,0.5); }
+        
+        /* Botones de accion */
+        .action-buttons {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-        }
-
-        .filter-chip {
-            padding: 8px 15px;
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s;
-            user-select: none;
-        }
-
-        .filter-chip:hover {
-            border-color: #8b5cf6;
-            background: #f3f4f6;
-        }
-
-        .filter-chip.selected {
-            background: #8b5cf6;
-            color: white;
-            border-color: #8b5cf6;
-        }
-
-        .target-summary {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
             margin-top: 15px;
-            border: 2px solid #e5e7eb;
         }
-
-        .target-list {
-            max-height: 200px;
-            overflow-y: auto;
+        
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-action:hover { opacity: 0.8; }
+        .btn-alert { background: #f59e0b; color: #000; }
+        .btn-delete { background: #ef4444; color: #fff; }
+        
+        /* Remote IDs */
+        .remote-ids {
+            display: flex;
+            gap: 10px;
             margin-top: 10px;
         }
-
-        .target-item {
-            padding: 8px;
-            background: #f9fafb;
-            margin: 5px 0;
-            border-radius: 5px;
-            font-size: 13px;
+        
+        .remote-id {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
         }
-
-        .notif-status {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
+        
+        .remote-id span { font-weight: bold; }
+        
+        /* Last update */
+        .last-update {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 10px;
         }
-
-        .notif-status.pending {
-            background: #fef3c7;
-            color: #92400e;
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
         }
-
-        .notif-status.viewed {
-            background: #d1fae5;
-            color: #065f46;
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
-
-        .notif-status.expired {
-            background: #fee2e2;
-            color: #991b1b;
+        
+        .modal-content {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
         }
-
-        .notif-panel-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            font-size: 20px;
         }
-
-        .notif-card {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #e5e7eb;
+        
+        .modal-content input,
+        .modal-content textarea,
+        .modal-content select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
         }
-
-        .notif-card.viewed {
-            border-color: #10b981;
+        
+        .modal-content textarea { height: 100px; resize: vertical; }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
         }
-
-        .notif-card.pending {
-            border-color: #f59e0b;
+        
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
         }
+        
+        .btn-send { background: #10b981; color: #fff; }
+        .btn-cancel { background: #6b7280; color: #fff; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🖥️ Panel de Monitoreo de Sucursales</h1>
+            <h1>🖥️ Monitor de Sucursales</h1>
             <div class="header-stats">
-                <div class="stat-badge online" id="totalOnline">0 Online</div>
-                <div class="stat-badge offline" id="totalOffline">0 Offline</div>
-                <div class="stat-badge warning" id="totalAlerts">0 Alertas</div>
+                <span class="stat-badge online" id="countOnline">0 Online</span>
+                <span class="stat-badge offline" id="countOffline">0 Offline</span>
+                <span class="stat-badge alerts" id="countAlerts">0 Alertas</span>
             </div>
         </header>
-
-        <div class="config-panel">
-            <div class="config-input">
-                <button onclick="loadData()" style="background: #10b981;">🔄 Actualizar Ahora</button>
-                <button onclick="toggleAutoRefresh()" id="btnAutoRefresh" style="background: #8b5cf6;">⏱️ Auto: ON (30s)</button>
-                <button onclick="showMassAlertModal()" style="background: #ef4444;">📢 Envío Masivo</button>
-                <button onclick="showNotificationsPanel()" style="background: #f59e0b;">📋 Estado Notificaciones</button>
-                <span style="margin-left: auto; color: #6b7280; font-size: 14px;">
-                    📡 Conectado a Firebase
-                </span>
-            </div>
+        
+        <div id="alertsPanel" class="alerts-panel">
+            <h2>⚠️ LOCALES CON ALERTAS</h2>
+            <div id="alertsList" class="alert-list"></div>
         </div>
-
+        
+        <div id="noAlerts" class="no-alerts" style="display: none;">
+            ✅ Todos los sistemas funcionando correctamente
+        </div>
+        
         <div class="search-bar">
-            <input 
-                type="text" 
-                id="searchInput" 
-                placeholder="🔍 Buscar sucursal o PC..."
-                oninput="filterData()"
-            >
+            <input type="text" id="searchInput" placeholder="🔍 Buscar sucursal o PC..." oninput="filterData()">
         </div>
-
+        
         <div id="content">
             <div class="loading">⏳ Cargando datos...</div>
         </div>
     </div>
+    
+    <div id="modal" class="modal" style="display: none;"></div>
 
     <script>
-        // URL de Firebase HARDCODEADA (no se puede cambiar desde la interfaz)
-        const firebaseUrl = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales';
+        const FIREBASE_URL = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales';
+        const OFFLINE_THRESHOLD = 6 * 60; // 6 minutos en segundos
+        const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutos en ms
         
         let allData = {};
-        let autoRefreshEnabled = true;
-        let autoRefreshInterval = 30;
-        let refreshTimer = null;
-
-        window.onload = function() {
+        
+        // Iniciar
+        window.onload = () => {
             loadData();
+            setInterval(loadData, REFRESH_INTERVAL);
         };
-
-        function toggleAutoRefresh() {
-            autoRefreshEnabled = !autoRefreshEnabled;
-            const btn = document.getElementById('btnAutoRefresh');
-            
-            if (autoRefreshEnabled) {
-                btn.textContent = `⏱️ Auto: ON (${autoRefreshInterval}s)`;
-                btn.style.background = '#8b5cf6';
-                scheduleRefresh();
-            } else {
-                btn.textContent = '⏱️ Auto: OFF';
-                btn.style.background = '#6b7280';
-                if (refreshTimer) clearTimeout(refreshTimer);
-            }
-        }
-
-        function scheduleRefresh() {
-            if (refreshTimer) clearTimeout(refreshTimer);
-            if (autoRefreshEnabled) {
-                refreshTimer = setTimeout(() => {
-                    loadData();
-                }, autoRefreshInterval * 1000);
-            }
-        }
-
+        
+        // Cargar datos
         async function loadData() {
             try {
-                const response = await fetch(`${firebaseUrl}.json`);
-                if (!response.ok) throw new Error('Error al cargar datos');
-
+                const response = await fetch(`${FIREBASE_URL}.json`);
                 const data = await response.json();
                 allData = data || {};
-
                 renderData(allData);
                 updateStats(allData);
-                await checkNotificationStatus(allData); // Verificar notificaciones
-
-                scheduleRefresh();
+                updateAlertsPanel(allData);
             } catch (error) {
                 document.getElementById('content').innerHTML = `
-                    <div class="error-message">
-                        ❌ Error al cargar datos: ${error.message}
-                    </div>
+                    <div class="loading" style="color: #ef4444;">❌ Error al cargar datos: ${error.message}</div>
                 `;
             }
         }
-
+        
+        // Verificar si esta online (menos de 6 minutos)
+        function isOnline(lastUpdate) {
+            const now = Math.floor(Date.now() / 1000);
+            return (now - lastUpdate) < OFFLINE_THRESHOLD;
+        }
+        
+        // Formato de tiempo
+        function formatTime(timestamp) {
+            const now = Math.floor(Date.now() / 1000);
+            const diff = now - timestamp;
+            
+            if (diff < 60) return `Hace ${diff}s`;
+            if (diff < 3600) return `Hace ${Math.floor(diff / 60)}m`;
+            if (diff < 86400) return `Hace ${Math.floor(diff / 3600)}h`;
+            return new Date(timestamp * 1000).toLocaleString('es-AR');
+        }
+        
+        // Clase de color segun porcentaje
+        function getColorClass(value, inverse = false) {
+            if (inverse) {
+                if (value >= 70) return 'text-green';
+                if (value >= 30) return 'text-yellow';
+                return 'text-red';
+            }
+            if (value < 70) return 'text-green';
+            if (value < 90) return 'text-yellow';
+            return 'text-red';
+        }
+        
+        // Clase de barra
+        function getBarClass(value) {
+            if (value < 70) return 'low';
+            if (value < 90) return 'medium';
+            return 'high';
+        }
+        
+        // Actualizar stats del header
+        function updateStats(data) {
+            let online = 0, offline = 0, alerts = 0;
+            
+            for (const sucursal of Object.values(data)) {
+                for (const pc of Object.values(sucursal)) {
+                    if (isOnline(pc.lastUpdate)) online++;
+                    else offline++;
+                    if (pc.alerts && pc.alerts.length > 0) alerts += pc.alerts.length;
+                }
+            }
+            
+            document.getElementById('countOnline').textContent = `${online} Online`;
+            document.getElementById('countOffline').textContent = `${offline} Offline`;
+            document.getElementById('countAlerts').textContent = `${alerts} Alertas`;
+        }
+        
+        // Panel de alertas
+        function updateAlertsPanel(data) {
+            const panel = document.getElementById('alertsPanel');
+            const list = document.getElementById('alertsList');
+            const noAlerts = document.getElementById('noAlerts');
+            
+            let alertsHtml = '';
+            let hasAlerts = false;
+            
+            for (const [sucName, pcs] of Object.entries(data)) {
+                for (const [pcName, pc] of Object.entries(pcs)) {
+                    if (pc.alerts && pc.alerts.length > 0 && isOnline(pc.lastUpdate)) {
+                        hasAlerts = true;
+                        for (const alert of pc.alerts) {
+                            alertsHtml += `
+                                <div class="alert-item">
+                                    <div class="alert-item-left">
+                                        <span class="alert-item-loc">${sucName}</span>
+                                        <span class="alert-item-pc">${pcName}</span>
+                                    </div>
+                                    <span class="alert-item-msg">${alert}</span>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }
+            
+            if (hasAlerts) {
+                panel.classList.add('show');
+                noAlerts.style.display = 'none';
+                list.innerHTML = alertsHtml;
+            } else {
+                panel.classList.remove('show');
+                noAlerts.style.display = 'flex';
+            }
+        }
+        
+        // Renderizar datos
         function renderData(data) {
             const content = document.getElementById('content');
             
             if (!data || Object.keys(data).length === 0) {
-                content.innerHTML = `
-                    <div class="no-data">
-                        <h2>📭 No hay datos disponibles</h2>
-                        <p>Asegúrate de que los agentes estén instalados y enviando datos</p>
-                    </div>
-                `;
+                content.innerHTML = '<div class="loading">📭 No hay datos disponibles</div>';
                 return;
             }
-
+            
             let html = '<div class="sucursales-grid">';
-
-            for (const [sucursalName, pcs] of Object.entries(data)) {
-                html += `<div class="sucursal-card" data-sucursal="${sucursalName}">`;
+            
+            // Ordenar sucursales
+            const sortedSucursales = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
+            
+            for (const [sucName, pcs] of sortedSucursales) {
                 html += `
-                    <div class="sucursal-header">
-                        <div class="sucursal-name">📍 ${sucursalName}</div>
-                    </div>
+                    <div class="sucursal-card" data-sucursal="${sucName}">
+                        <div class="sucursal-header">
+                            <span class="sucursal-name">📍 ${sucName}</span>
+                        </div>
                 `;
-
-                for (const [pcName, pcData] of Object.entries(pcs)) {
-                    const isOnline = isRecent(pcData.lastUpdate);
-                    const statusClass = isOnline ? 'online' : 'offline';
-                    const pcId = `${sucursalName}-${pcName}`.replace(/[^a-zA-Z0-9]/g, '-');
+                
+                for (const [pcName, pc] of Object.entries(pcs)) {
+                    const online = isOnline(pc.lastUpdate);
+                    const pcId = `${sucName}-${pcName}`.replace(/[^a-zA-Z0-9]/g, '-');
                     
                     html += `
                         <div class="pc-item" data-pc="${pcName}">
                             <div class="pc-header">
                                 <div>
-                                    <span class="status-indicator ${statusClass}"></span>
+                                    <span class="pc-status ${online ? 'online' : 'offline'}"></span>
                                     <span class="pc-name">${pcName}</span>
-                                    <span id="notif-indicator-${pcId}" style="margin-left: 8px;"></span>
                                 </div>
-                                <span class="pc-type">${pcData.pcType}</span>
+                                <span class="pc-type">${pc.pcType || 'PC'}</span>
                             </div>
-
-                            <div class="metrics-compact">
-                                <div class="metric-large">
+                            
+                            <div class="metrics-grid">
+                                <div class="metric">
                                     <div class="metric-label">CPU</div>
-                                    <div class="metric-value-large">${pcData.cpu.usage.toFixed(0)}%</div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill ${getProgressClass(pcData.cpu.usage)}" 
-                                             style="width: ${pcData.cpu.usage}%"></div>
-                                    </div>
+                                    <div class="metric-value ${getColorClass(pc.cpu?.usage || 0)}">${Math.round(pc.cpu?.usage || 0)}%</div>
+                                    <div class="metric-bar"><div class="metric-bar-fill ${getBarClass(pc.cpu?.usage || 0)}" style="width: ${pc.cpu?.usage || 0}%"></div></div>
                                 </div>
-                                <div class="metric-large">
+                                <div class="metric">
                                     <div class="metric-label">RAM</div>
-                                    <div class="metric-value-large">${pcData.ram.usagePercent.toFixed(0)}%</div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill ${getProgressClass(pcData.ram.usagePercent)}" 
-                                             style="width: ${pcData.ram.usagePercent}%"></div>
-                                    </div>
+                                    <div class="metric-value ${getColorClass(pc.ram?.percent || 0)}">${Math.round(pc.ram?.percent || 0)}%</div>
+                                    <div class="metric-bar"><div class="metric-bar-fill ${getBarClass(pc.ram?.percent || 0)}" style="width: ${pc.ram?.percent || 0}%"></div></div>
                                 </div>
-                                <div class="metric-large">
+                                <div class="metric">
                                     <div class="metric-label">DISCO</div>
-                                    <div class="metric-value-large">${pcData.disk.usagePercent.toFixed(0)}%</div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill ${getProgressClass(pcData.disk.usagePercent)}" 
-                                             style="width: ${pcData.disk.usagePercent}%"></div>
-                                    </div>
+                                    <div class="metric-value ${getColorClass(pc.disk?.percent || 0)}">${Math.round(pc.disk?.percent || 0)}%</div>
+                                    <div class="metric-bar"><div class="metric-bar-fill ${getBarClass(pc.disk?.percent || 0)}" style="width: ${pc.disk?.percent || 0}%"></div></div>
                                 </div>
                             </div>
-
-                            <div class="metrics-compact" style="margin-top: 10px;">
-                                <div class="metric-large">
-                                    <div class="metric-label">🌡️ TEMP CPU</div>
-                                    <div class="metric-value-large" style="font-size: 24px; color: ${pcData.cpu.temperature ? (pcData.cpu.temperature > 80 ? '#ef4444' : pcData.cpu.temperature > 60 ? '#f59e0b' : '#10b981') : '#9ca3af'}">
-                                        ${pcData.cpu.temperature ? pcData.cpu.temperature + '°C' : 'N/A'}
+                            
+                            <div class="metrics-grid">
+                                <div class="metric">
+                                    <div class="metric-label">🌡️ CPU</div>
+                                    <div class="metric-value ${pc.cpu?.temperature ? (pc.cpu.temperature > 80 ? 'text-red' : pc.cpu.temperature > 60 ? 'text-yellow' : 'text-green') : 'text-gray'}">
+                                        ${pc.cpu?.temperature ? pc.cpu.temperature + '°' : 'N/A'}
                                     </div>
                                 </div>
-                                <div class="metric-large">
-                                    <div class="metric-label">💽 SALUD DISCO</div>
-                                    <div class="metric-value-large" style="font-size: 24px; color: ${
-                                        pcData.disk.healthStatus === 'HDD' ? '#6366f1' :
-                                        pcData.disk.healthPercent ? (pcData.disk.healthPercent >= 70 ? '#10b981' : pcData.disk.healthPercent >= 30 ? '#f59e0b' : '#ef4444') : '#9ca3af'
-                                    }">
-                                        ${pcData.disk.healthStatus === 'HDD' ? 'HDD' : (pcData.disk.healthPercent ? pcData.disk.healthPercent + '%' : 'N/A')}
+                                <div class="metric">
+                                    <div class="metric-label">💽 SALUD</div>
+                                    <div class="metric-value ${pc.disk?.health ? getColorClass(pc.disk.health, true) : 'text-gray'}">
+                                        ${pc.disk?.health ? pc.disk.health + '%' : 'N/A'}
                                     </div>
-                                    ${pcData.disk.healthPercent ? `
-                                    <div class="progress-bar">
-                                        <div class="progress-fill ${pcData.disk.healthPercent >= 70 ? 'low' : pcData.disk.healthPercent >= 30 ? 'medium' : 'high'}" 
-                                             style="width: ${pcData.disk.healthPercent || 0}%"></div>
-                                    </div>
-                                    ` : ''}
                                 </div>
-                                <div class="metric-large">
+                                <div class="metric">
                                     <div class="metric-label">⏱️ UPTIME</div>
-                                    <div class="metric-value-large" style="font-size: 18px; color: #6366f1">
-                                        ${pcData.system.uptime || 'N/A'}
+                                    <div class="metric-value text-blue" style="font-size: 16px;">
+                                        ${pc.system?.uptime || 'N/A'}
                                     </div>
                                 </div>
                             </div>
-
-                            ${pcData.alerts && pcData.alerts.length > 0 ? `
-                                <div class="alerts">
-                                    ${pcData.alerts.map(alert => `<span class="alert-badge">⚠️ ${alert}</span>`).join('')}
+                            
+                            ${pc.alerts && pc.alerts.length > 0 ? `
+                                <div class="pc-alerts">
+                                    ${pc.alerts.map(a => `<span class="pc-alert-badge">⚠️ ${a}</span>`).join('')}
                                 </div>
                             ` : ''}
-
-                            <div class="details-toggle">
-                                <button class="btn-details" onclick="toggleDetails('${pcId}')">
-                                    📊 Ver Detalles
-                                </button>
-                            </div>
-
-                            <div class="system-info" id="details-${pcId}">
-                                <div class="info-row">
-                                    <span class="info-label">💻 Procesador:</span>
-                                    <span class="info-value">${pcData.cpu.model}</span>
+                            
+                            ${pc.remote?.teamviewerId || pc.remote?.anydeskId ? `
+                                <div class="remote-ids">
+                                    ${pc.remote?.teamviewerId ? `<div class="remote-id">📺 TV: <span>${pc.remote.teamviewerId}</span></div>` : ''}
+                                    ${pc.remote?.anydeskId ? `<div class="remote-id">🖥️ AD: <span>${pc.remote.anydeskId}</span></div>` : ''}
                                 </div>
-                                <div class="info-row">
-                                    <span class="info-label">🔢 Núcleos / Hilos:</span>
-                                    <span class="info-value">${pcData.cpu.cores} núcleos / ${pcData.cpu.threads} hilos</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🧠 RAM Total:</span>
-                                    <span class="info-value">${pcData.ram.total} GB (${pcData.ram.used} GB usado)</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">💾 Disco Total:</span>
-                                    <span class="info-value">${pcData.disk.total} GB (${pcData.disk.free} GB libre)</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🌐 Red:</span>
-                                    <span class="info-value">${pcData.network.type}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">📡 IP:</span>
-                                    <span class="info-value">${pcData.network.ip}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🔧 MAC Address:</span>
-                                    <span class="info-value">${pcData.network.macAddress || 'N/A'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🪟 Sistema Operativo:</span>
-                                    <span class="info-value">${pcData.system.os}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">📦 Versión OS:</span>
-                                    <span class="info-value">${pcData.system.osVersion}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🏭 Fabricante:</span>
-                                    <span class="info-value">${pcData.system.manufacturer}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🖥️ Modelo:</span>
-                                    <span class="info-value">${pcData.system.model}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🔑 Serial:</span>
-                                    <span class="info-value">${pcData.system.serialNumber}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">💿 SQL Server:</span>
-                                    <span class="info-value">${pcData.system.sqlServerRunning ? '✅ Activo' : '❌ Inactivo'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🌡️ Temperatura CPU:</span>
-                                    <span class="info-value" style="color: ${pcData.cpu.temperature ? (pcData.cpu.temperature > 80 ? '#ef4444' : pcData.cpu.temperature > 60 ? '#f59e0b' : '#10b981') : '#6b7280'}">
-                                        ${pcData.cpu.temperature ? pcData.cpu.temperature + '°C' : 'No disponible'}
-                                    </span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">💽 Salud del Disco:</span>
-                                    <span class="info-value" style="color: ${pcData.disk.healthPercent ? (pcData.disk.healthPercent >= 70 ? '#10b981' : pcData.disk.healthPercent >= 30 ? '#f59e0b' : '#ef4444') : '#6b7280'}">
-                                        ${pcData.disk.healthPercent ? pcData.disk.healthPercent + '% - ' + pcData.disk.healthStatus : 'No disponible'}
-                                    </span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🌡️ Temperatura Disco:</span>
-                                    <span class="info-value" style="color: ${pcData.disk.temperature ? (pcData.disk.temperature > 50 ? '#ef4444' : pcData.disk.temperature > 40 ? '#f59e0b' : '#10b981') : '#6b7280'}">
-                                        ${pcData.disk.temperature ? pcData.disk.temperature + '°C' : 'No disponible'}
-                                    </span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">⏱️ Tiempo Encendido:</span>
-                                    <span class="info-value">${pcData.system.uptime || 'No disponible'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">🕐 Última actualización:</span>
-                                    <span class="info-value">${pcData.timestamp}</span>
-                                </div>
+                            ` : ''}
+                            
+                            <button class="btn-details" onclick="toggleDetails('${pcId}')">📊 Ver Detalles</button>
+                            
+                            <div class="pc-details" id="details-${pcId}">
+                                <div class="detail-row"><span class="detail-label">CPU Modelo</span><span class="detail-value">${pc.cpu?.model || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">CPU Núcleos/Hilos</span><span class="detail-value">${pc.cpu?.cores || '?'}/${pc.cpu?.threads || '?'}</span></div>
+                                <div class="detail-row"><span class="detail-label">GPU Temp</span><span class="detail-value">${pc.gpu?.temperature ? pc.gpu.temperature + '°C' : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">RAM Total</span><span class="detail-value">${pc.ram?.total ? pc.ram.total.toFixed(1) + ' GB' : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Disco Tipo</span><span class="detail-value">${pc.disk?.type || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Disco Modelo</span><span class="detail-value">${pc.disk?.model || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Disco Temp</span><span class="detail-value">${pc.disk?.temperature ? pc.disk.temperature + '°C' : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Disco Espacio</span><span class="detail-value">${pc.disk?.free ? pc.disk.free.toFixed(1) + ' GB libre' : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Red</span><span class="detail-value">${pc.network?.type || 'N/A'} - ${pc.network?.ip || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">MAC</span><span class="detail-value">${pc.network?.mac || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Sistema</span><span class="detail-value">${pc.system?.os || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Fabricante</span><span class="detail-value">${pc.system?.manufacturer || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Modelo</span><span class="detail-value">${pc.system?.model || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Serial</span><span class="detail-value">${pc.system?.serial || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">SQL Server</span><span class="detail-value">${pc.system?.sqlRunning ? '✅ Activo' : '❌ Inactivo'}</span></div>
                                 
-                                <div style="margin-top: 15px; display: flex; gap: 10px;">
-                                    <button class="delete-btn" onclick="deleteFromFirebase('${sucursalName}', '${pcName}')">
-                                        🗑️ Eliminar del Panel
-                                    </button>
-                                    <button class="alert-btn" onclick="sendAlert('${sucursalName}', '${pcName}')">
-                                        📢 Enviar Alerta
-                                    </button>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-alert" onclick="showAlertModal('${sucName}', '${pcName}')">📢 Enviar Alerta</button>
+                                    <button class="btn-action btn-delete" onclick="deletePC('${sucName}', '${pcName}')">🗑️ Eliminar</button>
                                 </div>
                             </div>
-
-                            <div class="last-update">
-                                Actualizado: ${formatTime(pcData.lastUpdate)}
-                            </div>
+                            
+                            <div class="last-update">Actualizado: ${formatTime(pc.lastUpdate)}</div>
                         </div>
                     `;
                 }
-
+                
                 html += '</div>';
             }
-
+            
             html += '</div>';
             content.innerHTML = html;
         }
-
+        
+        // Toggle detalles
         function toggleDetails(pcId) {
             const details = document.getElementById(`details-${pcId}`);
             details.classList.toggle('show');
-            
-            const btn = event.target;
-            if (details.classList.contains('show')) {
-                btn.textContent = '📊 Ocultar Detalles';
-            } else {
-                btn.textContent = '📊 Ver Detalles';
-            }
         }
-
-        async function deleteFromFirebase(sucursal, pcName) {
-            if (!confirm(`¿Eliminar ${pcName} de ${sucursal} del panel?\n\nEsto NO desinstala el agente, solo elimina los datos de Firebase.`)) {
-                return;
-            }
-
-            try {
-                const url = `${firebaseUrl}/${sucursal}/${pcName}.json`;
-                const response = await fetch(url, { method: 'DELETE' });
-                
-                if (response.ok) {
-                    alert('✓ PC eliminada del panel correctamente');
-                    loadData();
-                } else {
-                    alert('❌ Error al eliminar. Verifica los permisos de Firebase.');
-                }
-            } catch (error) {
-                alert(`❌ Error: ${error.message}`);
-            }
-        }
-
-        async function sendAlert(sucursal, pcName) {
-            // Crear formulario de alerta más amigable
-            const modalHtml = `
-                <div id="alertModal" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.7);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10000;
-                ">
-                    <div style="
-                        background: white;
-                        padding: 30px;
-                        border-radius: 15px;
-                        box-shadow: 0 10px 50px rgba(0,0,0,0.3);
-                        max-width: 500px;
-                        width: 90%;
-                    ">
-                        <h2 style="margin-bottom: 20px; color: #374151;">📢 Enviar Alerta a ${pcName}</h2>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Tipo de alerta:</label>
-                            <select id="alertType" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                                <option value="Info">ℹ️ Información</option>
-                                <option value="Warning" selected>⚠️ Advertencia</option>
-                                <option value="Critical">🚨 Crítico</option>
-                            </select>
-                        </div>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Título:</label>
-                            <input type="text" id="alertTitle" value="ATENCIÓN: Actualización necesaria" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                        </div>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Mensaje:</label>
-                            <textarea id="alertMessage" rows="4" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;">Por favor, ejecuta la actualización del sistema que se encuentra en el escritorio.</textarea>
-                        </div>
-                        
-                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                            <button onclick="closeAlertModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                Cancelar
-                            </button>
-                            <button onclick="confirmSendAlert('${sucursal}', '${pcName}')" style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                📤 Enviar Alerta
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        }
-
-        function closeAlertModal() {
-            const modal = document.getElementById('alertModal');
-            if (modal) modal.remove();
-            const massModal = document.getElementById('massAlertModal');
-            if (massModal) massModal.remove();
-            const notifModal = document.getElementById('notificationsModal');
-            if (notifModal) notifModal.remove();
-        }
-
-        async function showNotificationsPanel() {
-            const modalHtml = `
-                <div id="notificationsModal" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.7);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10000;
-                    overflow-y: auto;
-                ">
-                    <div style="
-                        background: white;
-                        padding: 30px;
-                        border-radius: 15px;
-                        box-shadow: 0 10px 50px rgba(0,0,0,0.3);
-                        max-width: 1200px;
-                        width: 90%;
-                        max-height: 90vh;
-                        overflow-y: auto;
-                    ">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h2 style="color: #374151;">📋 Estado de Notificaciones</h2>
-                            <button onclick="closeAlertModal()" style="
-                                background: #ef4444;
-                                color: white;
-                                border: none;
-                                padding: 8px 16px;
-                                border-radius: 8px;
-                                cursor: pointer;
-                                font-weight: bold;
-                            ">✕ Cerrar</button>
-                        </div>
-                        
-                        <div id="notificationsContent">
-                            <div style="text-align: center; padding: 40px;">
-                                <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
-                                <p>Cargando estado de notificaciones...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            
-            // Cargar notificaciones
-            await loadNotificationsStatus();
-        }
-
-        async function loadNotificationsStatus() {
-            try {
-                const response = await fetch('https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications.json');
-                const notifications = await response.json();
-                
-                if (!notifications || Object.keys(notifications).length === 0) {
-                    document.getElementById('notificationsContent').innerHTML = `
-                        <div style="text-align: center; padding: 40px;">
-                            <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
-                            <h3 style="color: #6b7280;">No hay notificaciones enviadas</h3>
-                            <p style="color: #9ca3af;">Las notificaciones aparecerán aquí cuando las envíes</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                let html = '<div style="margin-bottom: 20px;">';
-                
-                let totalSent = 0;
-                let totalViewed = 0;
-                let totalPending = 0;
-                
-                // Contar totales
-                for (const [sucursal, pcs] of Object.entries(notifications)) {
-                    for (const [pcName, notif] of Object.entries(pcs)) {
-                        totalSent++;
-                        if (notif.show === false) {
-                            totalViewed++;
-                        } else {
-                            totalPending++;
-                        }
-                    }
-                }
-                
-                html += `
-                    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-                        <div style="flex: 1; background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
-                            <div style="font-size: 24px; font-weight: bold; color: #10b981;">${totalViewed}</div>
-                            <div style="color: #6b7280; font-size: 14px;">Vistas</div>
-                        </div>
-                        <div style="flex: 1; background: #fffbeb; padding: 15px; border-radius: 10px; border-left: 4px solid #f59e0b;">
-                            <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${totalPending}</div>
-                            <div style="color: #6b7280; font-size: 14px;">Pendientes</div>
-                        </div>
-                        <div style="flex: 1; background: #f3f4f6; padding: 15px; border-radius: 10px; border-left: 4px solid #6b7280;">
-                            <div style="font-size: 24px; font-weight: bold; color: #374151;">${totalSent}</div>
-                            <div style="color: #6b7280; font-size: 14px;">Total Enviadas</div>
-                        </div>
-                    </div>
-                `;
-                
-                html += '<div class="notif-panel-grid">';
-                
-                // Mostrar notificaciones agrupadas por sucursal
-                for (const [sucursal, pcs] of Object.entries(notifications)) {
-                    for (const [pcName, notif] of Object.entries(pcs)) {
-                        const isViewed = notif.show === false;
-                        const statusClass = isViewed ? 'viewed' : 'pending';
-                        const statusText = isViewed ? 'Vista' : 'Pendiente';
-                        const statusBadge = isViewed ? 
-                            '<span class="notif-status viewed">✓ Vista</span>' : 
-                            '<span class="notif-status pending">⏳ Pendiente</span>';
-                        
-                        const createdDate = new Date(notif.createdAt);
-                        const viewedDate = notif.shownAt ? new Date(notif.shownAt) : null;
-                        
-                        html += `
-                            <div class="notif-card ${statusClass}">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                                    <div>
-                                        <div style="font-weight: bold; color: #374151;">${sucursal}</div>
-                                        <div style="font-size: 13px; color: #6b7280;">${pcName}</div>
-                                    </div>
-                                    ${statusBadge}
-                                </div>
-                                
-                                <div style="background: #f9fafb; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                                    <div style="font-weight: 600; color: #374151; margin-bottom: 5px; font-size: 13px;">${notif.title}</div>
-                                    <div style="font-size: 12px; color: #6b7280; max-height: 40px; overflow: hidden; text-overflow: ellipsis;">
-                                        ${notif.message}
-                                    </div>
-                                </div>
-                                
-                                <div style="font-size: 11px; color: #9ca3af;">
-                                    <div>📤 Enviada: ${createdDate.toLocaleString('es-AR', { 
-                                        day: '2-digit', 
-                                        month: '2-digit', 
-                                        hour: '2-digit', 
-                                        minute: '2-digit' 
-                                    })}</div>
-                                    ${viewedDate ? `
-                                        <div style="color: #10b981;">✓ Vista: ${viewedDate.toLocaleString('es-AR', { 
-                                            day: '2-digit', 
-                                            month: '2-digit', 
-                                            hour: '2-digit', 
-                                            minute: '2-digit' 
-                                        })}</div>
-                                    ` : '<div style="color: #f59e0b;">⏳ Aún no vista</div>'}
-                                </div>
-                                
-                                <button onclick="deleteNotification('${sucursal}', '${pcName}')" style="
-                                    margin-top: 10px;
-                                    width: 100%;
-                                    padding: 6px;
-                                    background: #fee2e2;
-                                    color: #dc2626;
-                                    border: none;
-                                    border-radius: 6px;
-                                    cursor: pointer;
-                                    font-size: 12px;
-                                    font-weight: bold;
-                                ">
-                                    🗑️ Eliminar
-                                </button>
-                            </div>
-                        `;
-                    }
-                }
-                
-                html += '</div></div>';
-                
-                document.getElementById('notificationsContent').innerHTML = html;
-                
-            } catch (error) {
-                document.getElementById('notificationsContent').innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
-                        <h3 style="color: #ef4444;">Error al cargar notificaciones</h3>
-                        <p style="color: #6b7280;">${error.message}</p>
-                    </div>
-                `;
-            }
-        }
-
-        async function deleteNotification(sucursal, pcName) {
-            if (!confirm(`¿Eliminar notificación de ${pcName} en ${sucursal}?`)) {
-                return;
-            }
-            
-            try {
-                const url = `https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${sucursal}/${pcName}.json`;
-                await fetch(url, { method: 'DELETE' });
-                alert('✓ Notificación eliminada');
-                await loadNotificationsStatus(); // Recargar
-            } catch (error) {
-                alert('❌ Error al eliminar: ' + error.message);
-            }
-        }
-
-        function showMassAlertModal() {
-            const modalHtml = `
-                <div id="massAlertModal" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.7);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10000;
-                    overflow-y: auto;
-                ">
-                    <div style="
-                        background: white;
-                        padding: 30px;
-                        border-radius: 15px;
-                        box-shadow: 0 10px 50px rgba(0,0,0,0.3);
-                        max-width: 700px;
-                        width: 90%;
-                        max-height: 90vh;
-                        overflow-y: auto;
-                    ">
-                        <h2 style="margin-bottom: 20px; color: #374151;">📢 Envío Masivo de Alertas</h2>
-                        
-                        <div class="mass-alert-section">
-                            <h3>🎯 Filtrar por Nombre de PC</h3>
-                            <div class="filter-group" id="pcNameFilters">
-                                <div class="filter-chip" onclick="togglePCFilter('ALL')">Todas las PCs</div>
-                                <div class="filter-chip" onclick="togglePCFilter('RES-PC-1')">Todas RES-PC-1</div>
-                                <div class="filter-chip" onclick="togglePCFilter('RES-PC-2')">Todas RES-PC-2</div>
-                                <div class="filter-chip" onclick="togglePCFilter('RES-PC-SERVER')">Todos Servidores</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mass-alert-section">
-                            <h3>🏪 Filtrar por Locales Específicos</h3>
-                            <p style="font-size: 13px; color: #6b7280; margin-bottom: 10px;">
-                                Ingresa los números de local separados por coma (ej: 255, 159, 33)
-                            </p>
-                            <input type="text" id="localNumbers" placeholder="255, 159, 33" style="
-                                width: 100%;
-                                padding: 10px;
-                                border: 2px solid #e5e7eb;
-                                border-radius: 8px;
-                                font-size: 14px;
-                            ">
-                        </div>
-                        
-                        <div class="target-summary">
-                            <strong>PCs Seleccionadas: <span id="targetCount">0</span></strong>
-                            <div class="target-list" id="targetList"></div>
-                        </div>
-                        
-                        <div style="margin: 20px 0;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Tipo de alerta:</label>
-                            <select id="massAlertType" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                                <option value="Info">ℹ️ Información</option>
-                                <option value="Warning" selected>⚠️ Advertencia</option>
-                                <option value="Critical">🚨 Crítico</option>
-                            </select>
-                        </div>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Título:</label>
-                            <input type="text" id="massAlertTitle" value="ATENCIÓN: Actualización necesaria" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;">
-                        </div>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #6b7280;">Mensaje:</label>
-                            <textarea id="massAlertMessage" rows="4" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; resize: vertical;">Por favor, ejecuta la actualización del sistema que se encuentra en el escritorio.</textarea>
-                        </div>
-                        
-                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                            <button onclick="closeAlertModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                Cancelar
-                            </button>
-                            <button onclick="confirmMassAlert()" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                📤 Enviar a PCs Seleccionadas
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            updateMassAlertTargets();
-            
-            // Event listeners para actualizar en tiempo real
-            document.getElementById('localNumbers').addEventListener('input', updateMassAlertTargets);
-        }
-
-        let selectedPCFilter = null;
-
-        function togglePCFilter(filter) {
-            const chips = document.querySelectorAll('#pcNameFilters .filter-chip');
-            chips.forEach(chip => chip.classList.remove('selected'));
-            
-            if (selectedPCFilter === filter) {
-                selectedPCFilter = null;
-            } else {
-                selectedPCFilter = filter;
-                event.target.classList.add('selected');
-            }
-            
-            updateMassAlertTargets();
-        }
-
-        function updateMassAlertTargets() {
-            const localNumbersInput = document.getElementById('localNumbers');
-            const localNumbers = localNumbersInput ? localNumbersInput.value.split(',').map(n => n.trim()).filter(n => n) : [];
-            
-            const targets = [];
-            
-            for (const [sucursalName, pcs] of Object.entries(allData)) {
-                // Filtrar por número de local si se especificó
-                if (localNumbers.length > 0) {
-                    const localId = sucursalName.replace('LOC', '');
-                    if (!localNumbers.includes(localId)) continue;
-                }
-                
-                for (const [pcName, pcData] of Object.entries(pcs)) {
-                    // Filtrar por nombre de PC
-                    if (selectedPCFilter && selectedPCFilter !== 'ALL') {
-                        if (pcName !== selectedPCFilter) continue;
-                    }
-                    
-                    targets.push({
-                        sucursal: sucursalName,
-                        pcName: pcName,
-                        pcType: pcData.pcType
-                    });
-                }
-            }
-            
-            // Actualizar contador
-            document.getElementById('targetCount').textContent = targets.length;
-            
-            // Actualizar lista
-            const targetListHtml = targets.map(t => 
-                `<div class="target-item">
-                    <span><strong>${t.sucursal}</strong> - ${t.pcName}</span>
-                    <span style="color: #6b7280;">${t.pcType}</span>
-                </div>`
-            ).join('');
-            
-            document.getElementById('targetList').innerHTML = targetListHtml || '<p style="color: #6b7280; text-align: center; padding: 20px;">No hay PCs seleccionadas</p>';
-            
-            // Guardar targets para usar después
-            window.massAlertTargets = targets;
-        }
-
-        async function confirmMassAlert() {
-            const targets = window.massAlertTargets || [];
-            
-            if (targets.length === 0) {
-                alert('⚠️ No hay PCs seleccionadas. Ajusta los filtros.');
-                return;
-            }
-            
-            const type = document.getElementById('massAlertType').value;
-            const title = document.getElementById('massAlertTitle').value.trim();
-            const message = document.getElementById('massAlertMessage').value.trim();
-            
-            if (!title || !message) {
-                alert('⚠️ Por favor completa el título y el mensaje');
-                return;
-            }
-            
-            if (!confirm(`¿Enviar esta alerta a ${targets.length} PC(s)?\n\nSe auto-desactivará en 2 minutos.`)) {
-                return;
-            }
-            
-            // Mostrar progreso
-            const modal = document.getElementById('massAlertModal');
-            modal.innerHTML = `
-                <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">📤</div>
-                    <h2 style="color: #374151; margin-bottom: 10px;">Enviando alertas...</h2>
-                    <p style="color: #6b7280; margin-bottom: 20px;">Procesando <span id="progressCount">0</span> de ${targets.length}</p>
-                    <div style="width: 100%; background: #e5e7eb; border-radius: 10px; height: 20px; overflow: hidden;">
-                        <div id="progressBar" style="width: 0%; height: 100%; background: #8b5cf6; transition: width 0.3s;"></div>
-                    </div>
-                </div>
-            `;
-            
-            let successCount = 0;
-            let errorCount = 0;
-            
-            for (let i = 0; i < targets.length; i++) {
-                const target = targets[i];
-                
-                try {
-                    const alertData = {
-                        title: title,
-                        message: message,
-                        type: type,
-                        show: true,
-                        createdAt: new Date().toISOString(),
-                        createdBy: 'Panel Web - Envío Masivo'
-                    };
-                    
-                    const url = `https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${target.sucursal}/${target.pcName}.json`;
-                    const response = await fetch(url, {
-                        method: 'PUT',
-                        body: JSON.stringify(alertData),
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    
-                    if (response.ok) {
-                        successCount++;
-                    } else {
-                        errorCount++;
-                    }
-                } catch (error) {
-                    errorCount++;
-                }
-                
-                // Actualizar progreso
-                const progress = Math.round(((i + 1) / targets.length) * 100);
-                document.getElementById('progressCount').textContent = i + 1;
-                document.getElementById('progressBar').style.width = progress + '%';
-                
-                // Pequeña pausa para no saturar Firebase
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            // Mostrar resultado
-            modal.innerHTML = `
-                <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
-                    <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
-                    <h2 style="color: #10b981; margin-bottom: 10px;">¡Alertas Enviadas!</h2>
-                    <p style="color: #6b7280; margin-bottom: 20px;">
-                        <strong>${successCount}</strong> enviadas correctamente<br>
-                        ${errorCount > 0 ? `<span style="color: #ef4444;">${errorCount} con errores</span>` : ''}
-                    </p>
-                    <p style="color: #8b5cf6; margin-bottom: 20px;">
-                        ℹ️ Las alertas se mostrarán en los próximos 30 segundos<br>
-                        Cada PC la verá UNA SOLA VEZ
-                    </p>
-                    <button onclick="closeAlertModal()" style="padding: 10px 30px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                        Cerrar
-                    </button>
-                </div>
-            `;
-        }
-
-        async function confirmSendAlert(sucursal, pcName) {
-            const type = document.getElementById('alertType').value;
-            const title = document.getElementById('alertTitle').value.trim();
-            const message = document.getElementById('alertMessage').value.trim();
-            
-            if (!title || !message) {
-                alert('⚠️ Por favor completa el título y el mensaje');
-                return;
-            }
-            
-            // Mostrar loading
-            const modal = document.getElementById('alertModal');
-            modal.innerHTML = `
-                <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">📤</div>
-                    <div style="font-size: 18px; color: #374151;">Enviando alerta...</div>
-                </div>
-            `;
-            
-            try {
-                const alertData = {
-                    title: title,
-                    message: message,
-                    type: type,
-                    show: true,
-                    createdAt: new Date().toISOString(),
-                    createdBy: 'Panel Web'
-                };
-                
-                const url = `https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${sucursal}/${pcName}.json`;
-                const response = await fetch(url, {
-                    method: 'PUT',
-                    body: JSON.stringify(alertData),
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    modal.innerHTML = `
-                        <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
-                            <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
-                            <h2 style="color: #10b981; margin-bottom: 10px;">¡Alerta Enviada!</h2>
-                            <p style="color: #6b7280; margin-bottom: 20px;">La alerta se mostrará en <strong>${pcName}</strong> en los próximos 5 minutos</p>
-                            <button onclick="closeAlertModal()" style="padding: 10px 30px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                Entendido
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    throw new Error('Error en la respuesta del servidor');
-                }
-            } catch (error) {
-                modal.innerHTML = `
-                    <div style="background: white; padding: 40px; border-radius: 15px; text-align: center;">
-                        <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
-                        <h2 style="color: #ef4444; margin-bottom: 10px;">Error al enviar</h2>
-                        <p style="color: #6b7280; margin-bottom: 20px;">${error.message}</p>
-                        <button onclick="closeAlertModal()" style="padding: 10px 30px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                            Cerrar
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        function updateStats(data) {
-            let onlineCount = 0;
-            let offlineCount = 0;
-            let alertsCount = 0;
-
-            for (const sucursal of Object.values(data)) {
-                for (const pc of Object.values(sucursal)) {
-                    if (isRecent(pc.lastUpdate)) {
-                        onlineCount++;
-                    } else {
-                        offlineCount++;
-                    }
-                    if (pc.alerts && pc.alerts.length > 0) {
-                        alertsCount += pc.alerts.length;
-                    }
-                }
-            }
-
-            document.getElementById('totalOnline').textContent = `${onlineCount} Online`;
-            document.getElementById('totalOffline').textContent = `${offlineCount} Offline`;
-            document.getElementById('totalAlerts').textContent = `${alertsCount} Alertas`;
-        }
-
+        
+        // Filtrar
         function filterData() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const search = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.querySelectorAll('.sucursal-card');
-
+            
             cards.forEach(card => {
-                const sucursalName = card.dataset.sucursal.toLowerCase();
-                const pcItems = card.querySelectorAll('.pc-item');
-                let hasMatch = false;
-
-                pcItems.forEach(item => {
-                    const pcName = item.dataset.pc.toLowerCase();
-                    if (sucursalName.includes(searchTerm) || pcName.includes(searchTerm)) {
-                        item.style.display = 'block';
-                        hasMatch = true;
-                    } else {
-                        item.style.display = 'none';
-                    }
+                const sucursal = card.dataset.sucursal.toLowerCase();
+                const pcs = card.querySelectorAll('.pc-item');
+                let showCard = false;
+                
+                pcs.forEach(pc => {
+                    const pcName = pc.dataset.pc.toLowerCase();
+                    const match = sucursal.includes(search) || pcName.includes(search);
+                    pc.style.display = match ? 'block' : 'none';
+                    if (match) showCard = true;
                 });
-
-                card.style.display = hasMatch ? 'block' : 'none';
+                
+                card.style.display = showCard ? 'block' : 'none';
             });
         }
-
-        async function checkNotificationStatus(data) {
+        
+        // Modal de alerta
+        function showAlertModal(sucursal, pcName) {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>📢 Enviar Alerta a ${pcName}</h3>
+                    <select id="alertType">
+                        <option value="Info">ℹ️ Información</option>
+                        <option value="Warning">⚠️ Advertencia</option>
+                        <option value="Critical">🚨 Crítico</option>
+                    </select>
+                    <input type="text" id="alertTitle" placeholder="Título de la alerta">
+                    <textarea id="alertMessage" placeholder="Mensaje de la alerta"></textarea>
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                        <button class="btn-send" onclick="sendAlert('${sucursal}', '${pcName}')">Enviar</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+        
+        async function sendAlert(sucursal, pcName) {
+            const type = document.getElementById('alertType').value;
+            const title = document.getElementById('alertTitle').value;
+            const message = document.getElementById('alertMessage').value;
+            
+            if (!title || !message) {
+                alert('Completa todos los campos');
+                return;
+            }
+            
             try {
-                const response = await fetch('https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications.json');
-                const notifications = await response.json();
-                
-                if (!notifications) return;
-                
-                for (const [sucursalName, pcs] of Object.entries(data)) {
-                    for (const [pcName, pcData] of Object.entries(pcs)) {
-                        const pcId = `${sucursalName}-${pcName}`.replace(/[^a-zA-Z0-9]/g, '-');
-                        const indicator = document.getElementById(`notif-indicator-${pcId}`);
-                        
-                        if (indicator && notifications[sucursalName] && notifications[sucursalName][pcName]) {
-                            const notif = notifications[sucursalName][pcName];
-                            
-                            if (notif.show === false) {
-                                // Ya fue vista
-                                indicator.innerHTML = '<span style="background: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;">✓ Vista</span>';
-                            } else {
-                                // Pendiente
-                                indicator.innerHTML = '<span style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; animation: pulse 2s infinite;">⏳ Pendiente</span>';
-                            }
-                        }
-                    }
-                }
+                const url = `https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${sucursal}/${pcName}.json`;
+                await fetch(url, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        type, title, message,
+                        show: true,
+                        createdAt: new Date().toISOString()
+                    })
+                });
+                closeModal();
+                alert('✅ Alerta enviada');
             } catch (error) {
-                console.error('Error verificando notificaciones:', error);
+                alert('❌ Error: ' + error.message);
             }
         }
-
-        function isRecent(timestamp) {
-            const now = Math.floor(Date.now() / 1000);
-            return (now - timestamp) < 900;
-        }
-
-        function formatTime(timestamp) {
-            const date = new Date(timestamp * 1000);
-            const now = new Date();
-            const diff = Math.floor((now - date) / 1000);
-
-            if (diff < 60) return `Hace ${diff} segundos`;
-            if (diff < 3600) return `Hace ${Math.floor(diff / 60)} minutos`;
-            if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} horas`;
-            return date.toLocaleString('es-AR');
-        }
-
-        function getProgressClass(percent) {
-            if (percent < 70) return 'low';
-            if (percent < 90) return 'medium';
-            return 'high';
+        
+        async function deletePC(sucursal, pcName) {
+            if (!confirm(`¿Eliminar ${pcName} de ${sucursal}?`)) return;
+            
+            try {
+                await fetch(`${FIREBASE_URL}/${sucursal}/${pcName}.json`, { method: 'DELETE' });
+                loadData();
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
         }
     </script>
 </body>
