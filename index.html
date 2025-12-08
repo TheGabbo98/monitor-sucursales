@@ -582,31 +582,48 @@
         
         // Modal para enviar avisos masivos
         function showBroadcastModal() {
-            // Construir opciones de sucursales y PCs
-            let sucursalOptions = '<option value="ALL">📢 TODOS los locales</option>';
-            let pcOptions = {};
+            // Construir lista de opciones para autocompletado
+            let suggestions = [
+                { value: 'TODOS', label: '📢 TODOS los locales', type: 'all' }
+            ];
             
-            for (const [sucName, pcs] of Object.entries(allData).sort()) {
-                sucursalOptions += `<option value="${sucName}">📍 ${sucName}</option>`;
-                pcOptions[sucName] = Object.keys(pcs).sort();
+            // Obtener nombres de PCs únicos
+            let pcNames = new Set();
+            for (const [sucName, pcs] of Object.entries(allData)) {
+                suggestions.push({ value: sucName, label: `📍 ${sucName}`, type: 'loc' });
+                for (const pcName of Object.keys(pcs)) {
+                    pcNames.add(pcName);
+                }
             }
+            
+            // Agregar "Todas X" para cada tipo de PC
+            for (const pcName of [...pcNames].sort()) {
+                suggestions.push({ value: `TODAS:${pcName}`, label: `💻 Todas ${pcName}`, type: 'allpc' });
+            }
+            
+            window.broadcastSuggestions = suggestions;
+            window.broadcastTags = [];
             
             const modal = document.getElementById('modal');
             modal.style.display = 'flex';
             modal.innerHTML = `
-                <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-content" style="max-width: 550px;">
                     <h3 style="margin-bottom: 20px;">📢 Enviar Aviso</h3>
                     
-                    <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">Destinatario:</label>
-                    <select id="broadcastTarget" onchange="updatePCOptions()" style="margin-bottom: 15px;">
-                        ${sucursalOptions}
-                    </select>
+                    <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">Destinatarios:</label>
+                    <div id="tagsContainer" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; min-height: 45px; margin-bottom: 5px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;">
+                        <input type="text" id="tagInput" placeholder="Escribí para buscar..." 
+                            style="flex: 1; min-width: 150px; background: transparent; border: none; color: white; outline: none; padding: 5px;"
+                            oninput="filterSuggestions()" 
+                            onkeydown="handleTagKeydown(event)"
+                            onfocus="showSuggestions()"
+                            autocomplete="off">
+                    </div>
+                    <div id="suggestionsBox" style="background: rgba(0,0,0,0.8); border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; margin-bottom: 15px;">
+                    </div>
                     
-                    <div id="pcSelectContainer" style="display: none;">
-                        <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">PC específica:</label>
-                        <select id="broadcastPC" style="margin-bottom: 15px;">
-                            <option value="ALL">Todas las PCs del local</option>
-                        </select>
+                    <div id="selectedPreview" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: rgba(255,255,255,0.6);">
+                        Seleccioná al menos un destinatario
                     </div>
                     
                     <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">Tipo:</label>
@@ -622,10 +639,6 @@
                     <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">Mensaje:</label>
                     <textarea id="broadcastMessage" placeholder="Escribí el mensaje..." style="margin-bottom: 15px;"></textarea>
                     
-                    <div id="broadcastPreview" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px;">
-                        <strong>Enviando a:</strong> <span id="previewTarget">Todos los locales</span>
-                    </div>
-                    
                     <div class="modal-buttons">
                         <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
                         <button class="btn-send" onclick="sendBroadcast()">📢 Enviar</button>
@@ -633,43 +646,144 @@
                 </div>
             `;
             
-            // Guardar opciones de PCs para usar después
-            window.pcOptionsData = pcOptions;
+            // Click fuera del input cierra sugerencias
+            document.getElementById('tagsContainer').onclick = () => document.getElementById('tagInput').focus();
         }
         
-        // Actualizar opciones de PC según sucursal seleccionada
-        function updatePCOptions() {
-            const target = document.getElementById('broadcastTarget').value;
-            const pcContainer = document.getElementById('pcSelectContainer');
-            const pcSelect = document.getElementById('broadcastPC');
-            const preview = document.getElementById('previewTarget');
+        function showSuggestions() {
+            filterSuggestions();
+            document.getElementById('suggestionsBox').style.display = 'block';
+        }
+        
+        function hideSuggestions() {
+            setTimeout(() => {
+                document.getElementById('suggestionsBox').style.display = 'none';
+            }, 200);
+        }
+        
+        function filterSuggestions() {
+            const input = document.getElementById('tagInput').value.toLowerCase();
+            const box = document.getElementById('suggestionsBox');
             
-            if (target === 'ALL') {
-                pcContainer.style.display = 'none';
-                preview.textContent = 'Todos los locales';
+            // Filtrar sugerencias que no están ya seleccionadas
+            const filtered = window.broadcastSuggestions.filter(s => 
+                !window.broadcastTags.some(t => t.value === s.value) &&
+                (s.label.toLowerCase().includes(input) || s.value.toLowerCase().includes(input))
+            );
+            
+            if (filtered.length === 0) {
+                box.innerHTML = '<div style="padding: 10px; color: rgba(255,255,255,0.5);">No hay resultados</div>';
             } else {
-                pcContainer.style.display = 'block';
-                const pcs = window.pcOptionsData[target] || [];
-                pcSelect.innerHTML = '<option value="ALL">Todas las PCs del local</option>';
-                pcs.forEach(pc => {
-                    pcSelect.innerHTML += `<option value="${pc}">${pc}</option>`;
-                });
-                preview.textContent = target + ' - Todas las PCs';
+                box.innerHTML = filtered.map(s => `
+                    <div class="suggestion-item" onclick="addTag('${s.value}', '${s.label}', '${s.type}')"
+                        style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s;"
+                        onmouseover="this.style.background='rgba(255,255,255,0.1)'" 
+                        onmouseout="this.style.background='transparent'">
+                        ${s.label}
+                    </div>
+                `).join('');
+            }
+            
+            box.style.display = 'block';
+        }
+        
+        function addTag(value, label, type) {
+            // Si agrega TODOS, limpiar los demás
+            if (value === 'TODOS') {
+                window.broadcastTags = [];
+            } else {
+                // Quitar TODOS si había
+                window.broadcastTags = window.broadcastTags.filter(t => t.value !== 'TODOS');
+            }
+            
+            window.broadcastTags.push({ value, label, type });
+            renderTags();
+            document.getElementById('tagInput').value = '';
+            document.getElementById('tagInput').focus();
+            filterSuggestions();
+            updatePreview();
+        }
+        
+        function removeTag(value) {
+            window.broadcastTags = window.broadcastTags.filter(t => t.value !== value);
+            renderTags();
+            updatePreview();
+        }
+        
+        function renderTags() {
+            const container = document.getElementById('tagsContainer');
+            const input = document.getElementById('tagInput');
+            
+            // Eliminar tags existentes (mantener el input)
+            container.querySelectorAll('.tag-item').forEach(el => el.remove());
+            
+            // Agregar tags antes del input
+            window.broadcastTags.forEach(tag => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'tag-item';
+                tagEl.style.cssText = 'background: #3b82f6; color: white; padding: 4px 8px; border-radius: 5px; font-size: 13px; display: flex; align-items: center; gap: 5px;';
+                tagEl.innerHTML = `${tag.label} <span onclick="removeTag('${tag.value}')" style="cursor: pointer; opacity: 0.7;">&times;</span>`;
+                container.insertBefore(tagEl, input);
+            });
+        }
+        
+        function updatePreview() {
+            const preview = document.getElementById('selectedPreview');
+            if (window.broadcastTags.length === 0) {
+                preview.innerHTML = 'Seleccioná al menos un destinatario';
+                preview.style.color = 'rgba(255,255,255,0.6)';
+            } else {
+                // Calcular cuántas PCs recibirán
+                let count = 0;
+                let details = [];
                 
-                pcSelect.onchange = () => {
-                    const pcVal = pcSelect.value;
-                    preview.textContent = pcVal === 'ALL' ? `${target} - Todas las PCs` : `${target} → ${pcVal}`;
-                };
+                for (const tag of window.broadcastTags) {
+                    if (tag.value === 'TODOS') {
+                        count = Object.values(allData).reduce((sum, pcs) => sum + Object.keys(pcs).length, 0);
+                        details = ['Todas las PCs de todos los locales'];
+                        break;
+                    } else if (tag.type === 'loc') {
+                        const pcs = allData[tag.value];
+                        if (pcs) {
+                            count += Object.keys(pcs).length;
+                            details.push(`${tag.value}: ${Object.keys(pcs).length} PCs`);
+                        }
+                    } else if (tag.type === 'allpc') {
+                        const pcName = tag.value.replace('TODAS:', '');
+                        for (const [sucName, pcs] of Object.entries(allData)) {
+                            if (pcs[pcName]) count++;
+                        }
+                        details.push(`${pcName} en todos los locales`);
+                    }
+                }
+                
+                preview.innerHTML = `<strong>Enviando a ${count} PC(s):</strong> ${details.join(', ')}`;
+                preview.style.color = '#10b981';
+            }
+        }
+        
+        function handleTagKeydown(event) {
+            if (event.key === 'Backspace' && event.target.value === '' && window.broadcastTags.length > 0) {
+                // Borrar último tag
+                window.broadcastTags.pop();
+                renderTags();
+                updatePreview();
+            } else if (event.key === 'Escape') {
+                hideSuggestions();
             }
         }
         
         // Enviar aviso masivo
         async function sendBroadcast() {
-            const target = document.getElementById('broadcastTarget').value;
-            const pcTarget = document.getElementById('broadcastPC')?.value || 'ALL';
+            const tags = window.broadcastTags;
             const type = document.getElementById('broadcastType').value;
             const title = document.getElementById('broadcastTitle').value;
             const message = document.getElementById('broadcastMessage').value;
+            
+            if (tags.length === 0) {
+                alert('Seleccioná al menos un destinatario');
+                return;
+            }
             
             if (!title || !message) {
                 alert('Completá el título y mensaje');
@@ -684,47 +798,48 @@
             
             let sent = 0;
             let errors = 0;
+            let targets = new Set(); // Para evitar duplicados
             
-            try {
-                if (target === 'ALL') {
-                    // Enviar a TODAS las PCs de TODOS los locales
+            // Construir lista de destinos
+            for (const tag of tags) {
+                if (tag.value === 'TODOS') {
                     for (const [sucName, pcs] of Object.entries(allData)) {
                         for (const pcName of Object.keys(pcs)) {
-                            try {
-                                await fetch(`https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${sucName}/${pcName}.json`, {
-                                    method: 'PUT',
-                                    body: JSON.stringify(notification)
-                                });
-                                sent++;
-                            } catch (e) { errors++; }
+                            targets.add(`${sucName}/${pcName}`);
                         }
                     }
-                } else if (pcTarget === 'ALL') {
-                    // Enviar a todas las PCs de una sucursal
-                    const pcs = allData[target] || {};
-                    for (const pcName of Object.keys(pcs)) {
-                        try {
-                            await fetch(`https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${target}/${pcName}.json`, {
-                                method: 'PUT',
-                                body: JSON.stringify(notification)
-                            });
-                            sent++;
-                        } catch (e) { errors++; }
+                } else if (tag.type === 'loc') {
+                    const pcs = allData[tag.value];
+                    if (pcs) {
+                        for (const pcName of Object.keys(pcs)) {
+                            targets.add(`${tag.value}/${pcName}`);
+                        }
                     }
-                } else {
-                    // Enviar a una PC específica
-                    await fetch(`https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${target}/${pcTarget}.json`, {
+                } else if (tag.type === 'allpc') {
+                    const pcName = tag.value.replace('TODAS:', '');
+                    for (const [sucName, pcs] of Object.entries(allData)) {
+                        if (pcs[pcName]) {
+                            targets.add(`${sucName}/${pcName}`);
+                        }
+                    }
+                }
+            }
+            
+            // Enviar a cada destino
+            for (const target of targets) {
+                try {
+                    await fetch(`https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${target}.json`, {
                         method: 'PUT',
                         body: JSON.stringify(notification)
                     });
-                    sent = 1;
+                    sent++;
+                } catch (e) { 
+                    errors++; 
                 }
-                
-                closeModal();
-                alert(`✅ Aviso enviado a ${sent} PC(s)${errors > 0 ? ` (${errors} errores)` : ''}`);
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
             }
+            
+            closeModal();
+            alert(`✅ Aviso enviado a ${sent} PC(s)${errors > 0 ? ` (${errors} errores)` : ''}`);
         }
         
         // Renderizar datos
