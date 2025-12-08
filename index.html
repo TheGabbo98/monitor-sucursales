@@ -536,42 +536,61 @@
         
         // Modal para ver lista de alertas
         function showAlertsModal() {
-            let alertsHtml = '';
-            let alertCount = 0;
+            // Agrupar alertas por sucursal y PC
+            let alertsByLoc = {};
             
             for (const [sucName, pcs] of Object.entries(allData)) {
                 for (const [pcName, pc] of Object.entries(pcs)) {
                     if (pc.alerts && pc.alerts.length > 0) {
+                        const key = `${sucName}|${pcName}`;
                         const online = isOnline(pc.lastUpdate);
-                        const statusIcon = online ? '🟢' : '🔴';
                         
-                        for (const alert of pc.alerts) {
-                            alertCount++;
-                            alertsHtml += `
-                                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid ${alert.includes('90') || alert.includes('OFF') ? '#ef4444' : '#f59e0b'};">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <div>
-                                            <span style="font-weight: bold;">${statusIcon} ${sucName}</span>
-                                            <span style="color: rgba(255,255,255,0.6); margin-left: 10px;">${pcName}</span>
-                                        </div>
-                                        <span style="background: rgba(245,158,11,0.3); padding: 4px 10px; border-radius: 10px; font-size: 12px;">⚠️ ${alert}</span>
-                                    </div>
-                                </div>
-                            `;
+                        if (!alertsByLoc[key]) {
+                            alertsByLoc[key] = {
+                                sucursal: sucName,
+                                pcName: pcName,
+                                online: online,
+                                alerts: []
+                            };
                         }
+                        alertsByLoc[key].alerts.push(...pc.alerts);
                     }
                 }
             }
             
-            if (alertCount === 0) {
+            let alertsHtml = '';
+            const entries = Object.values(alertsByLoc);
+            
+            if (entries.length === 0) {
                 alertsHtml = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">✅ No hay alertas activas</div>';
+            } else {
+                for (const item of entries) {
+                    const statusIcon = item.online ? '🟢' : '🔴';
+                    const alertBadges = item.alerts.map(a => 
+                        `<span style="background: rgba(245,158,11,0.3); padding: 4px 10px; border-radius: 10px; font-size: 12px; white-space: nowrap;">⚠️ ${a}</span>`
+                    ).join(' ');
+                    
+                    alertsHtml += `
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid ${item.alerts.some(a => a.includes('90') || a.includes('OFF')) ? '#ef4444' : '#f59e0b'};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; min-width: 180px;">
+                                    <span style="font-weight: bold;">${statusIcon} ${item.sucursal}</span>
+                                    <span style="color: rgba(255,255,255,0.6);">${item.pcName}</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    ${alertBadges}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             }
             
             const modal = document.getElementById('modal');
             modal.style.display = 'flex';
             modal.innerHTML = `
-                <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
-                    <h3 style="margin-bottom: 20px;">⚠️ Alertas Activas (${alertCount})</h3>
+                <div class="modal-content" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
+                    <h3 style="margin-bottom: 20px;">⚠️ Alertas Activas (${entries.length})</h3>
                     ${alertsHtml}
                     <div class="modal-buttons" style="margin-top: 20px;">
                         <button class="btn-cancel" onclick="closeModal()">Cerrar</button>
