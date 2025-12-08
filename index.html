@@ -328,7 +328,22 @@
             gap: 8px;
         }
         
-        .remote-id span { font-weight: bold; }
+        .remote-id span:last-child { font-weight: bold; }
+        
+        .remote-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+        }
+        
+        .tv-icon { background: #0088cc; }
+        .ad-icon { background: #ef4444; }
         
         /* Last update */
         .last-update {
@@ -520,7 +535,7 @@
             document.getElementById('countAlerts').textContent = `${alerts} Alertas`;
         }
         
-        // Panel de alertas
+        // Panel de alertas - incluir también PCs offline con alertas
         function updateAlertsPanel(data) {
             const panel = document.getElementById('alertsPanel');
             const list = document.getElementById('alertsList');
@@ -531,13 +546,15 @@
             
             for (const [sucName, pcs] of Object.entries(data)) {
                 for (const [pcName, pc] of Object.entries(pcs)) {
-                    if (pc.alerts && pc.alerts.length > 0 && isOnline(pc.lastUpdate)) {
+                    // Mostrar alertas de PCs online Y offline
+                    if (pc.alerts && pc.alerts.length > 0) {
                         hasAlerts = true;
                         for (const alert of pc.alerts) {
+                            const statusIcon = isOnline(pc.lastUpdate) ? '🟢' : '🔴';
                             alertsHtml += `
                                 <div class="alert-item">
                                     <div class="alert-item-left">
-                                        <span class="alert-item-loc">${sucName}</span>
+                                        <span class="alert-item-loc">${statusIcon} ${sucName}</span>
                                         <span class="alert-item-pc">${pcName}</span>
                                     </div>
                                     <span class="alert-item-msg">${alert}</span>
@@ -641,8 +658,8 @@
                             
                             ${pc.remote?.teamviewerId || pc.remote?.anydeskId ? `
                                 <div class="remote-ids">
-                                    ${pc.remote?.teamviewerId ? `<div class="remote-id">📺 TV: <span>${pc.remote.teamviewerId}</span></div>` : ''}
-                                    ${pc.remote?.anydeskId ? `<div class="remote-id">🖥️ AD: <span>${pc.remote.anydeskId}</span></div>` : ''}
+                                    ${pc.remote?.teamviewerId ? `<div class="remote-id tv"><span class="remote-icon tv-icon">T</span><span>${pc.remote.teamviewerId}</span></div>` : ''}
+                                    ${pc.remote?.anydeskId ? `<div class="remote-id ad"><span class="remote-icon ad-icon">A</span><span>${pc.remote.anydeskId}</span></div>` : ''}
                                 </div>
                             ` : ''}
                             
