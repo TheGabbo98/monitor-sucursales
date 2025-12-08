@@ -358,8 +358,171 @@
             text-align: center;
             padding: 60px;
             font-size: 18px;
-            color: rgba(255,255,255,0.6);
         }
+        
+        /* Botón flotante de alertas */
+        .fab-alerts {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .fab-alerts:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(245, 158, 11, 0.6);
+        }
+        
+        .fab-alerts .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Panel lateral de alertas */
+        .alerts-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            box-shadow: -5px 0 30px rgba(0,0,0,0.5);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .alerts-sidebar.open { right: 0; }
+        
+        .alerts-sidebar-header {
+            padding: 20px;
+            background: rgba(245, 158, 11, 0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .alerts-sidebar-header h2 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-close-sidebar {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-close-sidebar:hover { background: rgba(255,255,255,0.2); }
+        
+        .alerts-sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .sidebar-alert-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .sidebar-alert-item.critical { border-left-color: #ef4444; }
+        .sidebar-alert-item.offline { border-left-color: #6b7280; opacity: 0.7; }
+        
+        .sidebar-alert-loc {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-alert-pc {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        
+        .sidebar-alert-msg {
+            background: rgba(245, 158, 11, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .sidebar-alert-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .sidebar-alert-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .btn-sidebar-alert {
+            background: #f59e0b;
+            color: #000;
+        }
+        
+        .no-alerts-sidebar {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .overlay.show { display: block; }
         
         /* Modal */
         .modal {
@@ -452,6 +615,26 @@
     </div>
     
     <div id="modal" class="modal" style="display: none;"></div>
+    
+    <!-- Botón flotante de alertas -->
+    <button class="fab-alerts" onclick="toggleAlertsSidebar()" id="fabAlerts">
+        🔔
+        <span class="badge" id="fabBadge" style="display: none;">0</span>
+    </button>
+    
+    <!-- Overlay para cerrar sidebar -->
+    <div class="overlay" id="overlay" onclick="toggleAlertsSidebar()"></div>
+    
+    <!-- Sidebar de alertas -->
+    <div class="alerts-sidebar" id="alertsSidebar">
+        <div class="alerts-sidebar-header">
+            <h2>🔔 Alertas Activas</h2>
+            <button class="btn-close-sidebar" onclick="toggleAlertsSidebar()">✕</button>
+        </div>
+        <div class="alerts-sidebar-content" id="alertsSidebarContent">
+            <!-- Se llena dinámicamente -->
+        </div>
+    </div>
 
     <script>
         const FIREBASE_URL = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales';
@@ -543,14 +726,21 @@
             
             let alertsHtml = '';
             let hasAlerts = false;
+            let alertCount = 0;
+            
+            // También actualizar sidebar
+            let sidebarHtml = '';
             
             for (const [sucName, pcs] of Object.entries(data)) {
                 for (const [pcName, pc] of Object.entries(pcs)) {
                     // Mostrar alertas de PCs online Y offline
                     if (pc.alerts && pc.alerts.length > 0) {
                         hasAlerts = true;
+                        alertCount += pc.alerts.length;
+                        const online = isOnline(pc.lastUpdate);
+                        const statusIcon = online ? '🟢' : '🔴';
+                        
                         for (const alert of pc.alerts) {
-                            const statusIcon = isOnline(pc.lastUpdate) ? '🟢' : '🔴';
                             alertsHtml += `
                                 <div class="alert-item">
                                     <div class="alert-item-left">
@@ -560,11 +750,25 @@
                                     <span class="alert-item-msg">${alert}</span>
                                 </div>
                             `;
+                            
+                            // Para sidebar
+                            const isCritical = alert.includes('>') && alert.includes('90') || alert.includes('OFF');
+                            sidebarHtml += `
+                                <div class="sidebar-alert-item ${isCritical ? 'critical' : ''} ${!online ? 'offline' : ''}">
+                                    <div class="sidebar-alert-loc">${statusIcon} ${sucName}</div>
+                                    <div class="sidebar-alert-pc">${pcName} - ${pc.pcType || 'PC'}</div>
+                                    <div class="sidebar-alert-msg">⚠️ ${alert}</div>
+                                    <div class="sidebar-alert-actions">
+                                        <button class="btn-sidebar-alert" onclick="showAlertModal('${sucName}', '${pcName}'); toggleAlertsSidebar();">📢 Notificar</button>
+                                    </div>
+                                </div>
+                            `;
                         }
                     }
                 }
             }
             
+            // Actualizar panel superior
             if (hasAlerts) {
                 panel.classList.add('show');
                 noAlerts.style.display = 'none';
@@ -573,6 +777,31 @@
                 panel.classList.remove('show');
                 noAlerts.style.display = 'flex';
             }
+            
+            // Actualizar sidebar
+            const sidebarContent = document.getElementById('alertsSidebarContent');
+            if (alertCount > 0) {
+                sidebarContent.innerHTML = sidebarHtml;
+            } else {
+                sidebarContent.innerHTML = '<div class="no-alerts-sidebar">✅ No hay alertas activas</div>';
+            }
+            
+            // Actualizar badge del FAB
+            const badge = document.getElementById('fabBadge');
+            if (alertCount > 0) {
+                badge.textContent = alertCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        // Toggle sidebar de alertas
+        function toggleAlertsSidebar() {
+            const sidebar = document.getElementById('alertsSidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
         }
         
         // Renderizar datos
