@@ -411,6 +411,7 @@
                 <span class="stat-badge online" id="countOnline">0 Online</span>
                 <span class="stat-badge offline" id="countOffline">0 Offline</span>
                 <span class="stat-badge alerts" id="countAlerts" onclick="showAlertsModal()" style="cursor: pointer;" title="Click para ver alertas">0 Alertas</span>
+                <span class="stat-badge" id="countNotifs" onclick="showNotificationsModal()" style="cursor: pointer; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);" title="Click para ver notificaciones">📬 0 Notif</span>
             </div>
         </header>
         
@@ -436,10 +437,12 @@
 
     <script>
         const FIREBASE_URL = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales';
+        const NOTIF_URL = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications';
         const OFFLINE_THRESHOLD = 6 * 60; // 6 minutos en segundos
         const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutos en ms
         
         let allData = {};
+        let allNotifications = {};
         
         // Iniciar
         window.onload = () => {
@@ -450,16 +453,149 @@
         // Cargar datos
         async function loadData() {
             try {
-                const response = await fetch(`${FIREBASE_URL}.json`);
-                const data = await response.json();
-                allData = data || {};
+                const [dataRes, notifRes] = await Promise.all([
+                    fetch(`${FIREBASE_URL}.json`),
+                    fetch(`${NOTIF_URL}.json`)
+                ]);
+                
+                allData = await dataRes.json() || {};
+                allNotifications = await notifRes.json() || {};
+                
                 renderData(allData);
                 updateStats(allData);
                 updateAlertsPanel(allData);
+                updateNotifCount();
             } catch (error) {
                 document.getElementById('content').innerHTML = `
                     <div class="loading" style="color: #ef4444;">❌ Error al cargar datos: ${error.message}</div>
                 `;
+            }
+        }
+        
+        // Actualizar contador de notificaciones
+        function updateNotifCount() {
+            let pending = 0, confirmed = 0;
+            
+            for (const [sucName, pcs] of Object.entries(allNotifications)) {
+                for (const [pcName, notif] of Object.entries(pcs)) {
+                    if (notif && notif.title) {
+                        if (notif.show === true) pending++;
+                        else confirmed++;
+                    }
+                }
+            }
+            
+            const badge = document.getElementById('countNotifs');
+            if (pending > 0) {
+                badge.innerHTML = `📬 ${pending} Pendiente${pending > 1 ? 's' : ''}`;
+                badge.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+            } else {
+                badge.innerHTML = `📭 ${confirmed} Notif`;
+                badge.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)';
+            }
+        }
+        
+        // Modal de control de notificaciones
+        function showNotificationsModal() {
+            let html = '';
+            let pending = [], confirmed = [];
+            
+            for (const [sucName, pcs] of Object.entries(allNotifications)) {
+                for (const [pcName, notif] of Object.entries(pcs)) {
+                    if (notif && notif.title) {
+                        const item = { sucName, pcName, ...notif };
+                        if (notif.show === true) pending.push(item);
+                        else confirmed.push(item);
+                    }
+                }
+            }
+            
+            // Ordenar por fecha (más reciente primero)
+            const sortByDate = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+            pending.sort(sortByDate);
+            confirmed.sort(sortByDate);
+            
+            if (pending.length === 0 && confirmed.length === 0) {
+                html = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">📭 No hay notificaciones</div>';
+            } else {
+                // Pendientes
+                if (pending.length > 0) {
+                    html += `<div style="margin-bottom: 20px;"><h4 style="color: #f59e0b; margin-bottom: 10px;">⏳ Pendientes de confirmar (${pending.length})</h4>`;
+                    for (const n of pending) {
+                        html += `
+                            <div style="background: rgba(245,158,11,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #f59e0b;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div>
+                                        <strong>📍 ${n.sucName}</strong> → <span style="color: rgba(255,255,255,0.7);">${n.pcName}</span>
+                                        <div style="font-size: 13px; margin-top: 5px;">
+                                            <span style="background: ${n.type === 'Critical' ? '#ef4444' : n.type === 'Warning' ? '#f59e0b' : '#3b82f6'}; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${n.type}</span>
+                                            <strong style="margin-left: 8px;">${n.title}</strong>
+                                        </div>
+                                        <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px;">Enviado: ${formatDateTime(n.createdAt)}</div>
+                                    </div>
+                                    <button onclick="cancelNotification('${n.sucName}', '${n.pcName}')" style="background: #ef4444; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">✕ Cancelar</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                }
+                
+                // Confirmadas
+                if (confirmed.length > 0) {
+                    html += `<div><h4 style="color: #10b981; margin-bottom: 10px;">✅ Confirmadas (${confirmed.length})</h4>`;
+                    for (const n of confirmed.slice(0, 10)) { // Mostrar últimas 10
+                        html += `
+                            <div style="background: rgba(16,185,129,0.1); padding: 10px; border-radius: 8px; margin-bottom: 6px; border-left: 4px solid #10b981;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>📍 ${n.sucName}</strong> → <span style="color: rgba(255,255,255,0.6);">${n.pcName}</span>
+                                        <span style="margin-left: 10px; font-size: 13px;">${n.title}</span>
+                                    </div>
+                                    <div style="text-align: right; font-size: 11px; color: rgba(255,255,255,0.5);">
+                                        <div>✓ ${n.shownAt || 'Confirmado'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    if (confirmed.length > 10) {
+                        html += `<div style="text-align: center; color: rgba(255,255,255,0.5); font-size: 12px;">... y ${confirmed.length - 10} más</div>`;
+                    }
+                    html += '</div>';
+                }
+            }
+            
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 650px; max-height: 80vh; overflow-y: auto;">
+                    <h3 style="margin-bottom: 20px;">📬 Control de Notificaciones</h3>
+                    ${html}
+                    <div class="modal-buttons" style="margin-top: 20px;">
+                        <button class="btn-cancel" onclick="closeModal()">Cerrar</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Formatear fecha/hora
+        function formatDateTime(isoString) {
+            if (!isoString) return 'N/A';
+            const d = new Date(isoString);
+            return d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+        
+        // Cancelar notificación pendiente
+        async function cancelNotification(sucursal, pcName) {
+            if (!confirm('¿Cancelar esta notificación?')) return;
+            
+            try {
+                await fetch(`${NOTIF_URL}/${sucursal}/${pcName}.json`, { method: 'DELETE' });
+                loadData();
+                showNotificationsModal(); // Refrescar modal
+            } catch (error) {
+                alert('Error: ' + error.message);
             }
         }
         
@@ -636,9 +772,10 @@
                             oninput="filterSuggestions()" 
                             onkeydown="handleTagKeydown(event)"
                             onfocus="showSuggestions()"
+                            onblur="hideSuggestions()"
                             autocomplete="off">
                     </div>
-                    <div id="suggestionsBox" style="background: rgba(0,0,0,0.8); border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; margin-bottom: 15px;">
+                    <div id="suggestionsBox" style="background: rgba(0,0,0,0.9); border-radius: 8px; max-height: 180px; overflow-y: auto; display: none; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2);">
                     </div>
                     
                     <div id="selectedPreview" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: rgba(255,255,255,0.6);">
@@ -675,9 +812,7 @@
         }
         
         function hideSuggestions() {
-            setTimeout(() => {
-                document.getElementById('suggestionsBox').style.display = 'none';
-            }, 200);
+            document.getElementById('suggestionsBox').style.display = 'none';
         }
         
         function filterSuggestions() {
@@ -693,8 +828,8 @@
             if (filtered.length === 0) {
                 box.innerHTML = '<div style="padding: 10px; color: rgba(255,255,255,0.5);">No hay resultados</div>';
             } else {
-                box.innerHTML = filtered.map(s => `
-                    <div class="suggestion-item" onclick="addTag('${s.value}', '${s.label}', '${s.type}')"
+                box.innerHTML = filtered.slice(0, 6).map(s => `
+                    <div class="suggestion-item" onmousedown="addTag('${s.value}', '${s.label}', '${s.type}')"
                         style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s;"
                         onmouseover="this.style.background='rgba(255,255,255,0.1)'" 
                         onmouseout="this.style.background='transparent'">
@@ -702,11 +837,12 @@
                     </div>
                 `).join('');
             }
-            
-            box.style.display = 'block';
         }
         
         function addTag(value, label, type) {
+            // Cerrar sugerencias inmediatamente
+            hideSuggestions();
+            
             // Si agrega TODOS, limpiar los demás
             if (value === 'TODOS') {
                 window.broadcastTags = [];
@@ -718,8 +854,6 @@
             window.broadcastTags.push({ value, label, type });
             renderTags();
             document.getElementById('tagInput').value = '';
-            document.getElementById('tagInput').focus();
-            filterSuggestions();
             updatePreview();
         }
         
