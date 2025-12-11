@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Sucursales v4.0</title>
+    <title>Monitor de Sucursales v4.4</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -17,6 +17,76 @@
         
         .container { max-width: 1600px; margin: 0 auto; }
         
+        /* Login Screen */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .login-box {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            width: 400px;
+            text-align: center;
+        }
+        
+        .login-box h2 {
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .login-box .subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 30px;
+        }
+        
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            color: #1a1a2e;
+        }
+        
+        .login-box button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .login-box button:hover {
+            transform: scale(1.02);
+        }
+        
+        .login-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
         /* Header */
         header {
             background: rgba(255,255,255,0.1);
@@ -27,21 +97,71 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         header h1 { font-size: 24px; }
         
-        .header-stats { display: flex; gap: 15px; }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header-stats { display: flex; gap: 15px; flex-wrap: wrap; }
         
         .stat-badge {
             padding: 8px 16px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 14px;
+            cursor: pointer;
         }
         .stat-badge.online { background: #10b981; }
         .stat-badge.offline { background: #ef4444; }
         .stat-badge.alerts { background: #f59e0b; }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        
+        .user-badge.admin { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .user-badge.sistemas { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .user-badge.monitoreo { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        
+        .btn-logout {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .btn-admin {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
         
         /* Mensaje sin alertas */
         .no-alerts {
@@ -80,68 +200,54 @@
             gap: 20px;
         }
         
-        /* Card de Sucursal */
         .sucursal-card {
             background: rgba(255,255,255,0.05);
             border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .sucursal-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
         }
         
         .sucursal-header {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
-        .sucursal-name { font-size: 20px; font-weight: bold; }
+        .sucursal-name { font-size: 18px; font-weight: bold; }
         
-        /* PC Item */
+        /* PC Items */
         .pc-item {
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         
         .pc-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         
         .pc-status {
+            display: inline-block;
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            display: inline-block;
             margin-right: 8px;
         }
-        
         .pc-status.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
-        .pc-status.offline { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        .pc-status.offline { background: #ef4444; }
         
-        .pc-name { font-weight: bold; font-size: 16px; }
-        
-        .pc-type {
-            background: rgba(99,102,241,0.3);
-            padding: 4px 10px;
+        .pc-name { font-weight: bold; }
+        .pc-type { 
+            font-size: 12px; 
+            background: rgba(255,255,255,0.1);
+            padding: 3px 10px;
             border-radius: 10px;
-            font-size: 12px;
-            color: #a5b4fc;
         }
         
-        /* Metricas */
+        /* Métricas */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -150,30 +256,20 @@
         }
         
         .metric {
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            padding: 8px;
+            border-radius: 8px;
             text-align: center;
         }
         
-        .metric-label {
-            font-size: 11px;
-            color: rgba(255,255,255,0.6);
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-        
-        .metric-value {
-            font-size: 24px;
-            font-weight: bold;
-        }
+        .metric-label { font-size: 11px; color: rgba(255,255,255,0.6); }
+        .metric-value { font-size: 16px; font-weight: bold; }
         
         .metric-bar {
             height: 4px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
             border-radius: 2px;
-            margin-top: 8px;
-            overflow: hidden;
+            margin-top: 5px;
         }
         
         .metric-bar-fill {
@@ -186,35 +282,57 @@
         .metric-bar-fill.medium { background: #f59e0b; }
         .metric-bar-fill.high { background: #ef4444; }
         
-        /* Colores de valores */
+        /* Colores de texto */
         .text-green { color: #10b981; }
         .text-yellow { color: #f59e0b; }
         .text-red { color: #ef4444; }
-        .text-gray { color: #9ca3af; }
-        .text-blue { color: #60a5fa; }
+        .text-gray { color: #6b7280; }
         
-        /* Alertas en PC */
-        .pc-alerts {
+        /* Botones de PC */
+        .pc-actions {
             display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
+            gap: 8px;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
         
-        .pc-alert-badge {
-            background: rgba(239,68,68,0.3);
-            color: #fca5a5;
-            padding: 4px 10px;
-            border-radius: 10px;
+        .pc-actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-details { background: #3b82f6; color: white; }
+        .btn-alert { background: #f59e0b; color: white; }
+        .btn-delete { background: #ef4444; color: white; }
+        
+        .remote-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
             font-size: 11px;
+            font-weight: bold;
+            color: white;
         }
+        .tv-icon { background: #0088cc; }
+        .ad-icon { background: #ef4444; }
         
-        /* Detalles */
+        /* Detalles expandibles */
         .pc-details {
             display: none;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-size: 13px;
         }
         
         .pc-details.show { display: block; }
@@ -222,101 +340,13 @@
         .detail-row {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
-            font-size: 13px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
         .detail-label { color: rgba(255,255,255,0.6); }
-        .detail-value { text-align: right; }
         
-        .btn-details {
-            width: 100%;
-            padding: 10px;
-            background: rgba(99,102,241,0.3);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-        
-        .btn-details:hover { background: rgba(99,102,241,0.5); }
-        
-        /* Botones de accion */
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .btn-action {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        
-        .btn-action:hover { opacity: 0.8; }
-        .btn-alert { background: #f59e0b; color: #000; }
-        .btn-delete { background: #ef4444; color: #fff; }
-        
-        /* Remote IDs */
-        .remote-ids {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .remote-id {
-            flex: 1;
-            background: rgba(255,255,255,0.1);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .remote-id span:last-child { font-weight: bold; }
-        
-        .remote-icon {
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            color: white;
-        }
-        
-        .tv-icon { background: #0088cc; }
-        .ad-icon { background: #ef4444; }
-        
-        /* Last update */
-        .last-update {
-            text-align: center;
-            font-size: 12px;
-            color: rgba(255,255,255,0.4);
-            margin-top: 10px;
-        }
-        
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 60px;
-            font-size: 18px;
-        }
-        
-        /* Botón flotante de alertas */
+        /* FAB */
         .fab-alerts {
             position: fixed;
             bottom: 30px;
@@ -353,15 +383,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
         }
         
         .modal-content {
-            background: #1e293b;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             padding: 30px;
             border-radius: 15px;
             width: 90%;
             max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
         }
         
         .modal-content h3 {
@@ -369,49 +401,128 @@
             font-size: 20px;
         }
         
+        .modal-content label {
+            display: block;
+            margin-bottom: 5px;
+            color: rgba(255,255,255,0.7);
+        }
+        
         .modal-content input,
-        .modal-content textarea,
-        .modal-content select {
+        .modal-content select,
+        .modal-content textarea {
             width: 100%;
             padding: 12px;
             margin-bottom: 15px;
-            border: none;
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 8px;
-            font-size: 14px;
             background: rgba(255,255,255,0.1);
-            color: #fff;
+            color: white;
+            font-size: 14px;
         }
         
-        .modal-content textarea { height: 100px; resize: vertical; }
+        .modal-content textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
         
         .modal-buttons {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
         }
         
         .modal-buttons button {
-            flex: 1;
-            padding: 12px;
+            padding: 12px 24px;
             border: none;
             border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
+            font-weight: bold;
         }
         
         .btn-send { background: #10b981; color: #fff; }
         .btn-cancel { background: #6b7280; color: #fff; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* Tabla de usuarios */
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .users-table th {
+            background: rgba(255,255,255,0.1);
+            font-weight: bold;
+        }
+        
+        .users-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .role-badge {
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .role-badge.admin { background: #ef4444; }
+        .role-badge.sistemas { background: #8b5cf6; }
+        .role-badge.monitoreo { background: #10b981; }
+        
+        /* Hidden */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h2>🖥️ Monitor RES</h2>
+            <p class="subtitle">Sistema de Monitoreo de Sucursales</p>
+            
+            <div class="login-error" id="loginError">
+                Usuario o contraseña incorrectos
+            </div>
+            
+            <input type="text" id="loginUser" placeholder="Usuario" autocomplete="off">
+            <input type="password" id="loginPass" placeholder="Contraseña">
+            <button onclick="doLogin()">Iniciar Sesión</button>
+        </div>
+    </div>
+    
+    <!-- Main App -->
+    <div class="container" id="mainApp" style="display: none;">
         <header>
-            <h1>🖥️ Monitor de Sucursales</h1>
+            <div class="header-left">
+                <h1>🖥️ Monitor de Sucursales</h1>
+            </div>
             <div class="header-stats">
                 <span class="stat-badge online" id="countOnline">0 Online</span>
                 <span class="stat-badge offline" id="countOffline">0 Offline</span>
-                <span class="stat-badge alerts" id="countAlerts" onclick="showAlertsModal()" style="cursor: pointer;" title="Click para ver alertas">0 Alertas</span>
-                <span class="stat-badge" id="countNotifs" onclick="showNotificationsModal()" style="cursor: pointer; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);" title="Click para ver notificaciones">📬 0 Notif</span>
+                <span class="stat-badge alerts" id="countAlerts" onclick="showAlertsModal()" title="Click para ver alertas">0 Alertas</span>
+                <span class="stat-badge" id="countNotifs" onclick="showNotificationsModal()" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);" title="Click para ver notificaciones">📬 0 Notif</span>
+            </div>
+            <div class="user-info">
+                <span class="user-badge" id="userBadge">Usuario</span>
+                <button class="btn-admin" id="btnAdminPanel" onclick="showAdminPanel()" style="display: none;">⚙️ Admin</button>
+                <button class="btn-logout" onclick="doLogout()">Salir</button>
             </div>
         </header>
         
@@ -431,26 +542,326 @@
     <div id="modal" class="modal" style="display: none;"></div>
     
     <!-- Botón flotante para ENVIAR AVISOS -->
-    <button class="fab-alerts" onclick="showBroadcastModal()" id="fabAlerts" title="Enviar Aviso">
+    <button class="fab-alerts" onclick="showBroadcastModal()" id="fabAlerts" title="Enviar Aviso" style="display: none;">
         📢
     </button>
 
     <script>
         const FIREBASE_URL = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/sucursales';
         const NOTIF_URL = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications';
-        const OFFLINE_THRESHOLD = 6 * 60; // 6 minutos en segundos
-        const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutos en ms
+        const USERS_URL = 'https://monitoreo-sucursales-default-rtdb.firebaseio.com/config/users';
+        const OFFLINE_THRESHOLD = 6 * 60;
+        const REFRESH_INTERVAL = 5 * 60 * 1000;
         
         let allData = {};
         let allNotifications = {};
+        let currentUser = null;
         
-        // Iniciar
-        window.onload = () => {
-            loadData();
-            setInterval(loadData, REFRESH_INTERVAL);
+        // Usuarios por defecto (se sincronizan con Firebase)
+        const defaultUsers = {
+            'Admin': { password: '3309_RES', role: 'admin', name: 'Administrador' },
+            'Sistemas': { password: '3309_RES_2985', role: 'sistemas', name: 'Sistemas' },
+            'Monitoreo': { password: 'Temporal!123', role: 'monitoreo', name: 'Monitoreo' }
         };
         
-        // Cargar datos
+        let usersDB = {};
+        
+        // ============== LOGIN ==============
+        async function initApp() {
+            // Cargar usuarios desde Firebase
+            try {
+                const res = await fetch(`${USERS_URL}.json`);
+                const data = await res.json();
+                if (data && Object.keys(data).length > 0) {
+                    usersDB = data;
+                } else {
+                    // Primera vez: guardar usuarios por defecto
+                    usersDB = defaultUsers;
+                    await fetch(`${USERS_URL}.json`, {
+                        method: 'PUT',
+                        body: JSON.stringify(defaultUsers)
+                    });
+                }
+            } catch (e) {
+                usersDB = defaultUsers;
+            }
+            
+            // Verificar sesión guardada
+            const savedSession = localStorage.getItem('monitorSession');
+            if (savedSession) {
+                try {
+                    const session = JSON.parse(savedSession);
+                    if (session.user && usersDB[session.user]) {
+                        currentUser = { username: session.user, ...usersDB[session.user] };
+                        showMainApp();
+                        return;
+                    }
+                } catch (e) {}
+            }
+            
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+        
+        function doLogin() {
+            const username = document.getElementById('loginUser').value.trim();
+            const password = document.getElementById('loginPass').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (usersDB[username] && usersDB[username].password === password) {
+                currentUser = { username, ...usersDB[username] };
+                localStorage.setItem('monitorSession', JSON.stringify({ user: username }));
+                errorDiv.style.display = 'none';
+                showMainApp();
+            } else {
+                errorDiv.style.display = 'block';
+                document.getElementById('loginPass').value = '';
+            }
+        }
+        
+        function doLogout() {
+            localStorage.removeItem('monitorSession');
+            currentUser = null;
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('fabAlerts').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+        }
+        
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('fabAlerts').style.display = 'flex';
+            
+            // Actualizar badge de usuario
+            const badge = document.getElementById('userBadge');
+            badge.textContent = `👤 ${currentUser.name}`;
+            badge.className = `user-badge ${currentUser.role}`;
+            
+            // Mostrar botón admin solo para administradores
+            document.getElementById('btnAdminPanel').style.display = 
+                currentUser.role === 'admin' ? 'block' : 'none';
+            
+            loadData();
+            setInterval(loadData, REFRESH_INTERVAL);
+        }
+        
+        // Enter en login
+        document.getElementById('loginPass').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') doLogin();
+        });
+        document.getElementById('loginUser').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginPass').focus();
+        });
+        
+        // ============== PERMISOS ==============
+        function canDelete() {
+            return currentUser && currentUser.role === 'admin';
+        }
+        
+        function canManageUsers() {
+            return currentUser && currentUser.role === 'admin';
+        }
+        
+        // ============== PANEL ADMIN ==============
+        function showAdminPanel() {
+            if (!canManageUsers()) return;
+            
+            let usersHtml = '';
+            for (const [username, user] of Object.entries(usersDB)) {
+                usersHtml += `
+                    <tr>
+                        <td><strong>${username}</strong></td>
+                        <td>${user.name}</td>
+                        <td><span class="role-badge ${user.role}">${user.role.toUpperCase()}</span></td>
+                        <td>
+                            <button onclick="editUser('${username}')" style="background: #3b82f6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-right: 5px;">✏️</button>
+                            ${username !== 'Admin' ? `<button onclick="deleteUser('${username}')" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">🗑️</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <h3>⚙️ Panel de Administración</h3>
+                    
+                    <h4 style="margin: 20px 0 10px; color: rgba(255,255,255,0.7);">👥 Gestión de Usuarios</h4>
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${usersHtml}
+                        </tbody>
+                    </table>
+                    
+                    <button onclick="showAddUserForm()" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+                        ➕ Agregar Usuario
+                    </button>
+                    
+                    <h4 style="margin: 30px 0 10px; color: rgba(255,255,255,0.7);">🔧 Mantenimiento</h4>
+                    <button onclick="clearAllNotifications()" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                        🗑️ Limpiar TODAS las notificaciones
+                    </button>
+                    
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" onclick="closeModal()">Cerrar</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showAddUserForm() {
+            const modal = document.getElementById('modal');
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 450px;">
+                    <h3>➕ Agregar Usuario</h3>
+                    
+                    <label>Usuario (login):</label>
+                    <input type="text" id="newUsername" placeholder="Nombre de usuario">
+                    
+                    <label>Nombre completo:</label>
+                    <input type="text" id="newName" placeholder="Nombre para mostrar">
+                    
+                    <label>Contraseña:</label>
+                    <input type="password" id="newPassword" placeholder="Contraseña">
+                    
+                    <label>Rol:</label>
+                    <select id="newRole">
+                        <option value="monitoreo">Monitoreo (solo ver)</option>
+                        <option value="sistemas">Sistemas (ver + notificar)</option>
+                        <option value="admin">Administrador (todo)</option>
+                    </select>
+                    
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" onclick="showAdminPanel()">Cancelar</button>
+                        <button class="btn-send" onclick="saveNewUser()">Guardar</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function saveNewUser() {
+            const username = document.getElementById('newUsername').value.trim();
+            const name = document.getElementById('newName').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('newRole').value;
+            
+            if (!username || !name || !password) {
+                alert('Completá todos los campos');
+                return;
+            }
+            
+            if (usersDB[username]) {
+                alert('Ese usuario ya existe');
+                return;
+            }
+            
+            usersDB[username] = { name, password, role };
+            
+            try {
+                await fetch(`${USERS_URL}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify(usersDB)
+                });
+                showAdminPanel();
+            } catch (e) {
+                alert('Error al guardar: ' + e.message);
+            }
+        }
+        
+        function editUser(username) {
+            const user = usersDB[username];
+            if (!user) return;
+            
+            const modal = document.getElementById('modal');
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 450px;">
+                    <h3>✏️ Editar Usuario: ${username}</h3>
+                    
+                    <label>Nombre completo:</label>
+                    <input type="text" id="editName" value="${user.name}">
+                    
+                    <label>Nueva contraseña (dejar vacío para no cambiar):</label>
+                    <input type="password" id="editPassword" placeholder="Nueva contraseña">
+                    
+                    <label>Rol:</label>
+                    <select id="editRole">
+                        <option value="monitoreo" ${user.role === 'monitoreo' ? 'selected' : ''}>Monitoreo</option>
+                        <option value="sistemas" ${user.role === 'sistemas' ? 'selected' : ''}>Sistemas</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrador</option>
+                    </select>
+                    
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" onclick="showAdminPanel()">Cancelar</button>
+                        <button class="btn-send" onclick="saveEditUser('${username}')">Guardar</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function saveEditUser(username) {
+            const name = document.getElementById('editName').value.trim();
+            const password = document.getElementById('editPassword').value;
+            const role = document.getElementById('editRole').value;
+            
+            if (!name) {
+                alert('El nombre es requerido');
+                return;
+            }
+            
+            usersDB[username].name = name;
+            usersDB[username].role = role;
+            if (password) {
+                usersDB[username].password = password;
+            }
+            
+            try {
+                await fetch(`${USERS_URL}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify(usersDB)
+                });
+                
+                // Si editó su propio usuario, actualizar sesión
+                if (username === currentUser.username) {
+                    currentUser.name = name;
+                    currentUser.role = role;
+                    const badge = document.getElementById('userBadge');
+                    badge.textContent = `👤 ${name}`;
+                    badge.className = `user-badge ${role}`;
+                }
+                
+                showAdminPanel();
+            } catch (e) {
+                alert('Error al guardar: ' + e.message);
+            }
+        }
+        
+        async function deleteUser(username) {
+            if (!confirm(`¿Eliminar usuario "${username}"?`)) return;
+            
+            delete usersDB[username];
+            
+            try {
+                await fetch(`${USERS_URL}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify(usersDB)
+                });
+                showAdminPanel();
+            } catch (e) {
+                alert('Error al eliminar: ' + e.message);
+            }
+        }
+        
+        // ============== DATOS ==============
         async function loadData() {
             try {
                 const [dataRes, notifRes] = await Promise.all([
@@ -472,30 +883,29 @@
             }
         }
         
-        // Actualizar contador de notificaciones
         function updateNotifCount() {
-            let pending = 0, confirmed = 0;
+            let pending = 0, total = 0;
             
             for (const [sucName, pcs] of Object.entries(allNotifications)) {
                 for (const [pcName, notif] of Object.entries(pcs)) {
                     if (notif && notif.title) {
+                        total++;
                         if (notif.show === true) pending++;
-                        else confirmed++;
                     }
                 }
             }
             
             const badge = document.getElementById('countNotifs');
             if (pending > 0) {
-                badge.innerHTML = `📬 ${pending} Pendiente${pending > 1 ? 's' : ''}`;
+                badge.innerHTML = `📬 ${pending} Pend.`;
                 badge.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
             } else {
-                badge.innerHTML = `📭 ${confirmed} Notif`;
+                badge.innerHTML = `📭 ${total}`;
                 badge.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)';
             }
         }
         
-        // Modal de control de notificaciones
+        // ============== NOTIFICACIONES ==============
         function showNotificationsModal() {
             let html = '';
             let pending = [], confirmed = [];
@@ -510,28 +920,26 @@
                 }
             }
             
-            // Ordenar por fecha (más reciente primero)
-            const sortByDate = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+            const sortByDate = (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
             pending.sort(sortByDate);
             confirmed.sort(sortByDate);
             
             if (pending.length === 0 && confirmed.length === 0) {
                 html = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">📭 No hay notificaciones</div>';
             } else {
-                // Pendientes
                 if (pending.length > 0) {
-                    html += `<div style="margin-bottom: 20px;"><h4 style="color: #f59e0b; margin-bottom: 10px;">⏳ Pendientes de confirmar (${pending.length})</h4>`;
+                    html += `<div style="margin-bottom: 20px;"><h4 style="color: #f59e0b; margin-bottom: 10px;">⏳ Pendientes (${pending.length})</h4>`;
                     for (const n of pending) {
                         html += `
                             <div style="background: rgba(245,158,11,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #f59e0b;">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
                                     <div>
                                         <strong>📍 ${n.sucName}</strong> → <span style="color: rgba(255,255,255,0.7);">${n.pcName}</span>
                                         <div style="font-size: 13px; margin-top: 5px;">
-                                            <span style="background: ${n.type === 'Critical' ? '#ef4444' : n.type === 'Warning' ? '#f59e0b' : '#3b82f6'}; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${n.type}</span>
+                                            <span style="background: ${n.type === 'Critical' ? '#ef4444' : n.type === 'Warning' ? '#f59e0b' : '#3b82f6'}; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${n.type || 'Info'}</span>
                                             <strong style="margin-left: 8px;">${n.title}</strong>
                                         </div>
-                                        <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px;">Enviado: ${formatDateTime(n.createdAt)}</div>
+                                        <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px;">📤 ${formatDateTime(n.createdAt)}</div>
                                     </div>
                                     <button onclick="cancelNotification('${n.sucName}', '${n.pcName}')" style="background: #ef4444; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">✕ Cancelar</button>
                                 </div>
@@ -541,30 +949,36 @@
                     html += '</div>';
                 }
                 
-                // Confirmadas
                 if (confirmed.length > 0) {
                     html += `<div><h4 style="color: #10b981; margin-bottom: 10px;">✅ Confirmadas (${confirmed.length})</h4>`;
-                    for (const n of confirmed.slice(0, 10)) { // Mostrar últimas 10
+                    for (const n of confirmed.slice(0, 15)) {
                         html += `
                             <div style="background: rgba(16,185,129,0.1); padding: 10px; border-radius: 8px; margin-bottom: 6px; border-left: 4px solid #10b981;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
                                     <div>
                                         <strong>📍 ${n.sucName}</strong> → <span style="color: rgba(255,255,255,0.6);">${n.pcName}</span>
                                         <span style="margin-left: 10px; font-size: 13px;">${n.title}</span>
                                     </div>
                                     <div style="text-align: right; font-size: 11px; color: rgba(255,255,255,0.5);">
-                                        <div>✓ ${n.shownAt || 'Confirmado'}</div>
+                                        ✓ ${n.shownAt || 'Confirmado'}
                                     </div>
                                 </div>
                             </div>
                         `;
                     }
-                    if (confirmed.length > 10) {
-                        html += `<div style="text-align: center; color: rgba(255,255,255,0.5); font-size: 12px;">... y ${confirmed.length - 10} más</div>`;
+                    if (confirmed.length > 15) {
+                        html += `<div style="text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 10px;">... y ${confirmed.length - 15} más</div>`;
                     }
                     html += '</div>';
                 }
             }
+            
+            // Botón para limpiar confirmadas
+            const clearBtn = confirmed.length > 0 ? `
+                <button onclick="clearConfirmedNotifications()" style="background: #6b7280; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 13px;">
+                    🗑️ Limpiar confirmadas
+                </button>
+            ` : '';
             
             const modal = document.getElementById('modal');
             modal.style.display = 'flex';
@@ -573,69 +987,66 @@
                     <h3 style="margin-bottom: 20px;">📬 Control de Notificaciones</h3>
                     ${html}
                     <div class="modal-buttons" style="margin-top: 20px;">
+                        ${clearBtn}
                         <button class="btn-cancel" onclick="closeModal()">Cerrar</button>
                     </div>
                 </div>
             `;
         }
         
-        // Formatear fecha/hora
         function formatDateTime(isoString) {
             if (!isoString) return 'N/A';
             const d = new Date(isoString);
             return d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         }
         
-        // Cancelar notificación pendiente
         async function cancelNotification(sucursal, pcName) {
             if (!confirm('¿Cancelar esta notificación?')) return;
             
             try {
                 await fetch(`${NOTIF_URL}/${sucursal}/${pcName}.json`, { method: 'DELETE' });
                 loadData();
-                showNotificationsModal(); // Refrescar modal
+                showNotificationsModal();
             } catch (error) {
                 alert('Error: ' + error.message);
             }
         }
         
-        // Verificar si esta online (menos de 6 minutos)
-        function isOnline(lastUpdate) {
-            const now = Math.floor(Date.now() / 1000);
-            return (now - lastUpdate) < OFFLINE_THRESHOLD;
-        }
-        
-        // Formato de tiempo
-        function formatTime(timestamp) {
-            const now = Math.floor(Date.now() / 1000);
-            const diff = now - timestamp;
+        async function clearConfirmedNotifications() {
+            if (!confirm('¿Eliminar todas las notificaciones confirmadas?')) return;
             
-            if (diff < 60) return `Hace ${diff}s`;
-            if (diff < 3600) return `Hace ${Math.floor(diff / 60)}m`;
-            if (diff < 86400) return `Hace ${Math.floor(diff / 3600)}h`;
-            return new Date(timestamp * 1000).toLocaleString('es-AR');
-        }
-        
-        // Clase de color segun porcentaje
-        function getColorClass(value, inverse = false) {
-            if (inverse) {
-                if (value >= 70) return 'text-green';
-                if (value >= 30) return 'text-yellow';
-                return 'text-red';
+            let deleted = 0;
+            for (const [sucName, pcs] of Object.entries(allNotifications)) {
+                for (const [pcName, notif] of Object.entries(pcs)) {
+                    if (notif && notif.show === false) {
+                        try {
+                            await fetch(`${NOTIF_URL}/${sucName}/${pcName}.json`, { method: 'DELETE' });
+                            deleted++;
+                        } catch (e) {}
+                    }
+                }
             }
-            if (value < 70) return 'text-green';
-            if (value < 90) return 'text-yellow';
-            return 'text-red';
+            
+            alert(`✅ ${deleted} notificaciones eliminadas`);
+            loadData();
+            showNotificationsModal();
         }
         
-        // Clase de barra
-        function getBarClass(value) {
-            if (value < 70) return 'low';
-            if (value < 90) return 'medium';
-            return 'high';
+        async function clearAllNotifications() {
+            if (!confirm('⚠️ ¿Eliminar TODAS las notificaciones (pendientes y confirmadas)?')) return;
+            if (!confirm('Esta acción no se puede deshacer. ¿Continuar?')) return;
+            
+            try {
+                await fetch(`${NOTIF_URL}.json`, { method: 'DELETE' });
+                alert('✅ Todas las notificaciones eliminadas');
+                loadData();
+                closeModal();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
         }
         
-        // Actualizar stats del header
+        // ============== ALERTAS ==============
         function updateStats(data) {
             let online = 0, offline = 0, alerts = 0;
             
@@ -652,7 +1063,6 @@
             document.getElementById('countAlerts').textContent = `${alerts} Alertas`;
         }
         
-        // Actualizar estado de alertas (simplificado)
         function updateAlertsPanel(data) {
             const noAlerts = document.getElementById('noAlerts');
             let hasAlerts = false;
@@ -670,9 +1080,7 @@
             noAlerts.style.display = hasAlerts ? 'none' : 'flex';
         }
         
-        // Modal para ver lista de alertas
         function showAlertsModal() {
-            // Agrupar alertas por sucursal y PC
             let alertsByLoc = {};
             
             for (const [sucName, pcs] of Object.entries(allData)) {
@@ -735,14 +1143,12 @@
             `;
         }
         
-        // Modal para enviar avisos masivos
+        // ============== BROADCAST ==============
         function showBroadcastModal() {
-            // Construir lista de opciones para autocompletado
             let suggestions = [
                 { value: 'TODOS', label: '📢 TODOS los locales', type: 'all' }
             ];
             
-            // Obtener nombres de PCs únicos
             let pcNames = new Set();
             for (const [sucName, pcs] of Object.entries(allData)) {
                 suggestions.push({ value: sucName, label: `📍 ${sucName}`, type: 'loc' });
@@ -751,7 +1157,6 @@
                 }
             }
             
-            // Agregar "Todas X" para cada tipo de PC
             for (const pcName of [...pcNames].sort()) {
                 suggestions.push({ value: `TODAS:${pcName}`, label: `💻 Todas ${pcName}`, type: 'allpc' });
             }
@@ -765,7 +1170,7 @@
                 <div class="modal-content" style="max-width: 550px;">
                     <h3 style="margin-bottom: 20px;">📢 Enviar Aviso</h3>
                     
-                    <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">Destinatarios:</label>
+                    <label>Destinatarios:</label>
                     <div id="tagsContainer" style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; min-height: 45px; margin-bottom: 5px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center;">
                         <input type="text" id="tagInput" placeholder="Escribí para buscar..." 
                             style="flex: 1; min-width: 150px; background: transparent; border: none; color: white; outline: none; padding: 5px;"
@@ -775,25 +1180,24 @@
                             onblur="hideSuggestions()"
                             autocomplete="off">
                     </div>
-                    <div id="suggestionsBox" style="background: rgba(0,0,0,0.9); border-radius: 8px; max-height: 180px; overflow-y: auto; display: none; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2);">
-                    </div>
+                    <div id="suggestionsBox" style="background: rgba(0,0,0,0.9); border-radius: 8px; max-height: 180px; overflow-y: auto; display: none; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2);"></div>
                     
                     <div id="selectedPreview" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: rgba(255,255,255,0.6);">
                         Seleccioná al menos un destinatario
                     </div>
                     
-                    <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">Tipo:</label>
-                    <select id="broadcastType" style="margin-bottom: 15px;">
+                    <label>Tipo:</label>
+                    <select id="broadcastType">
                         <option value="Info">ℹ️ Información</option>
                         <option value="Warning">⚠️ Advertencia</option>
                         <option value="Critical">🚨 Crítico</option>
                     </select>
                     
-                    <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">Título:</label>
-                    <input type="text" id="broadcastTitle" placeholder="Título del aviso" style="margin-bottom: 15px;">
+                    <label>Título:</label>
+                    <input type="text" id="broadcastTitle" placeholder="Título del aviso">
                     
-                    <label style="display: block; margin-bottom: 5px; color: rgba(255,255,255,0.7);">Mensaje:</label>
-                    <textarea id="broadcastMessage" placeholder="Escribí el mensaje..." style="margin-bottom: 15px;"></textarea>
+                    <label>Mensaje:</label>
+                    <textarea id="broadcastMessage" placeholder="Escribí el mensaje..."></textarea>
                     
                     <div class="modal-buttons">
                         <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
@@ -802,7 +1206,6 @@
                 </div>
             `;
             
-            // Click fuera del input cierra sugerencias
             document.getElementById('tagsContainer').onclick = () => document.getElementById('tagInput').focus();
         }
         
@@ -819,7 +1222,6 @@
             const input = document.getElementById('tagInput').value.toLowerCase();
             const box = document.getElementById('suggestionsBox');
             
-            // Filtrar sugerencias que no están ya seleccionadas
             const filtered = window.broadcastSuggestions.filter(s => 
                 !window.broadcastTags.some(t => t.value === s.value) &&
                 (s.label.toLowerCase().includes(input) || s.value.toLowerCase().includes(input))
@@ -830,7 +1232,7 @@
             } else {
                 box.innerHTML = filtered.slice(0, 6).map(s => `
                     <div class="suggestion-item" onmousedown="addTag('${s.value}', '${s.label}', '${s.type}')"
-                        style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s;"
+                        style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1);"
                         onmouseover="this.style.background='rgba(255,255,255,0.1)'" 
                         onmouseout="this.style.background='transparent'">
                         ${s.label}
@@ -840,14 +1242,11 @@
         }
         
         function addTag(value, label, type) {
-            // Cerrar sugerencias inmediatamente
             hideSuggestions();
             
-            // Si agrega TODOS, limpiar los demás
             if (value === 'TODOS') {
                 window.broadcastTags = [];
             } else {
-                // Quitar TODOS si había
                 window.broadcastTags = window.broadcastTags.filter(t => t.value !== 'TODOS');
             }
             
@@ -867,10 +1266,8 @@
             const container = document.getElementById('tagsContainer');
             const input = document.getElementById('tagInput');
             
-            // Eliminar tags existentes (mantener el input)
             container.querySelectorAll('.tag-item').forEach(el => el.remove());
             
-            // Agregar tags antes del input
             window.broadcastTags.forEach(tag => {
                 const tagEl = document.createElement('span');
                 tagEl.className = 'tag-item';
@@ -886,38 +1283,36 @@
                 preview.innerHTML = 'Seleccioná al menos un destinatario';
                 preview.style.color = 'rgba(255,255,255,0.6)';
             } else {
-                // Calcular cuántas PCs recibirán
                 let count = 0;
                 let details = [];
                 
                 for (const tag of window.broadcastTags) {
                     if (tag.value === 'TODOS') {
                         count = Object.values(allData).reduce((sum, pcs) => sum + Object.keys(pcs).length, 0);
-                        details = ['Todas las PCs de todos los locales'];
+                        details = ['Todas las PCs'];
                         break;
                     } else if (tag.type === 'loc') {
                         const pcs = allData[tag.value];
                         if (pcs) {
                             count += Object.keys(pcs).length;
-                            details.push(`${tag.value}: ${Object.keys(pcs).length} PCs`);
+                            details.push(`${tag.value}: ${Object.keys(pcs).length}`);
                         }
                     } else if (tag.type === 'allpc') {
                         const pcName = tag.value.replace('TODAS:', '');
                         for (const [sucName, pcs] of Object.entries(allData)) {
                             if (pcs[pcName]) count++;
                         }
-                        details.push(`${pcName} en todos los locales`);
+                        details.push(`${pcName} en todos`);
                     }
                 }
                 
-                preview.innerHTML = `<strong>Enviando a ${count} PC(s):</strong> ${details.join(', ')}`;
+                preview.innerHTML = `<strong>📤 ${count} PC(s):</strong> ${details.join(', ')}`;
                 preview.style.color = '#10b981';
             }
         }
         
         function handleTagKeydown(event) {
             if (event.key === 'Backspace' && event.target.value === '' && window.broadcastTags.length > 0) {
-                // Borrar último tag
                 window.broadcastTags.pop();
                 renderTags();
                 updatePreview();
@@ -926,7 +1321,6 @@
             }
         }
         
-        // Enviar aviso masivo
         async function sendBroadcast() {
             const tags = window.broadcastTags;
             const type = document.getElementById('broadcastType').value;
@@ -946,14 +1340,13 @@
             const notification = {
                 type, title, message,
                 show: true,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                sentBy: currentUser.username
             };
             
             let sent = 0;
-            let errors = 0;
-            let targets = new Set(); // Para evitar duplicados
+            let targets = new Set();
             
-            // Construir lista de destinos
             for (const tag of tags) {
                 if (tag.value === 'TODOS') {
                     for (const [sucName, pcs] of Object.entries(allData)) {
@@ -978,24 +1371,53 @@
                 }
             }
             
-            // Enviar a cada destino
             for (const target of targets) {
                 try {
-                    await fetch(`https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${target}.json`, {
+                    await fetch(`${NOTIF_URL}/${target}.json`, {
                         method: 'PUT',
                         body: JSON.stringify(notification)
                     });
                     sent++;
-                } catch (e) { 
-                    errors++; 
-                }
+                } catch (e) {}
             }
             
             closeModal();
-            alert(`✅ Aviso enviado a ${sent} PC(s)${errors > 0 ? ` (${errors} errores)` : ''}`);
+            alert(`✅ Aviso enviado a ${sent} PC(s)`);
+            loadData();
         }
         
-        // Renderizar datos
+        // ============== RENDER ==============
+        function isOnline(lastUpdate) {
+            const now = Math.floor(Date.now() / 1000);
+            return (now - lastUpdate) < OFFLINE_THRESHOLD;
+        }
+        
+        function formatTime(timestamp) {
+            const now = Math.floor(Date.now() / 1000);
+            const diff = now - timestamp;
+            if (diff < 60) return 'Hace segundos';
+            if (diff < 3600) return `Hace ${Math.floor(diff/60)} min`;
+            if (diff < 86400) return `Hace ${Math.floor(diff/3600)} hs`;
+            return `Hace ${Math.floor(diff/86400)} días`;
+        }
+        
+        function getColorClass(value, inverse = false) {
+            if (inverse) {
+                if (value >= 80) return 'text-green';
+                if (value >= 50) return 'text-yellow';
+                return 'text-red';
+            }
+            if (value < 70) return 'text-green';
+            if (value < 90) return 'text-yellow';
+            return 'text-red';
+        }
+        
+        function getBarClass(value) {
+            if (value < 70) return 'low';
+            if (value < 90) return 'medium';
+            return 'high';
+        }
+        
         function renderData(data) {
             const content = document.getElementById('content');
             
@@ -1006,7 +1428,6 @@
             
             let html = '<div class="sucursales-grid">';
             
-            // Ordenar sucursales
             const sortedSucursales = Object.entries(data).sort((a, b) => a[0].localeCompare(b[0]));
             
             for (const [sucName, pcs] of sortedSucursales) {
@@ -1020,6 +1441,10 @@
                 for (const [pcName, pc] of Object.entries(pcs)) {
                     const online = isOnline(pc.lastUpdate);
                     const pcId = `${sucName}-${pcName}`.replace(/[^a-zA-Z0-9]/g, '-');
+                    
+                    // Botón eliminar solo para admin
+                    const deleteBtn = canDelete() ? 
+                        `<button class="btn-delete" onclick="deletePC('${sucName}', '${pcName}')">🗑️</button>` : '';
                     
                     html += `
                         <div class="pc-item" data-pc="${pcName}">
@@ -1063,52 +1488,31 @@
                                     </div>
                                 </div>
                                 <div class="metric">
-                                    <div class="metric-label">⏱️ UPTIME</div>
-                                    <div class="metric-value text-blue" style="font-size: 16px;">
-                                        ${pc.system?.uptime || 'N/A'}
+                                    <div class="metric-label">⏱️</div>
+                                    <div class="metric-value text-gray" style="font-size: 11px;">
+                                        ${formatTime(pc.lastUpdate)}
                                     </div>
                                 </div>
                             </div>
                             
-                            ${pc.alerts && pc.alerts.length > 0 ? `
-                                <div class="pc-alerts">
-                                    ${pc.alerts.map(a => `<span class="pc-alert-badge">⚠️ ${a}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            
-                            ${pc.remote?.teamviewerId || pc.remote?.anydeskId ? `
-                                <div class="remote-ids">
-                                    ${pc.remote?.teamviewerId ? `<div class="remote-id tv"><span class="remote-icon tv-icon">T</span><span>${pc.remote.teamviewerId}</span></div>` : ''}
-                                    ${pc.remote?.anydeskId ? `<div class="remote-id ad"><span class="remote-icon ad-icon">A</span><span>${pc.remote.anydeskId}</span></div>` : ''}
-                                </div>
-                            ` : ''}
-                            
-                            <button class="btn-details" onclick="toggleDetails('${pcId}')">📊 Ver Detalles</button>
-                            
-                            <div class="pc-details" id="details-${pcId}">
-                                <div class="detail-row"><span class="detail-label">CPU Modelo</span><span class="detail-value">${pc.cpu?.model || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">CPU Núcleos/Hilos</span><span class="detail-value">${pc.cpu?.cores || '?'}/${pc.cpu?.threads || '?'}</span></div>
-                                <div class="detail-row"><span class="detail-label">GPU Temp</span><span class="detail-value">${pc.gpu?.temperature ? pc.gpu.temperature + '°C' : 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">RAM Total</span><span class="detail-value">${pc.ram?.total ? pc.ram.total.toFixed(1) + ' GB' : 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Disco Tipo</span><span class="detail-value">${pc.disk?.type || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Disco Modelo</span><span class="detail-value">${pc.disk?.model || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Disco Temp</span><span class="detail-value">${pc.disk?.temperature ? pc.disk.temperature + '°C' : 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Disco Espacio</span><span class="detail-value">${pc.disk?.free ? pc.disk.free.toFixed(1) + ' GB libre' : 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Red</span><span class="detail-value">${pc.network?.type || 'N/A'} - ${pc.network?.ip || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">MAC</span><span class="detail-value">${pc.network?.mac || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Sistema</span><span class="detail-value">${pc.system?.os || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Fabricante</span><span class="detail-value">${pc.system?.manufacturer || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Modelo</span><span class="detail-value">${pc.system?.model || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Serial</span><span class="detail-value">${pc.system?.serial || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">SQL Server</span><span class="detail-value">${pc.system?.sqlRunning ? '✅ Activo' : '❌ Inactivo'}</span></div>
-                                
-                                <div class="action-buttons">
-                                    <button class="btn-action btn-alert" onclick="showAlertModal('${sucName}', '${pcName}')">📢 Enviar Alerta</button>
-                                    <button class="btn-action btn-delete" onclick="deletePC('${sucName}', '${pcName}')">🗑️ Eliminar</button>
-                                </div>
+                            <div class="pc-actions">
+                                <button class="btn-details" onclick="toggleDetails('${pcId}')">📋 Detalles</button>
+                                <button class="btn-alert" onclick="showAlertModal('${sucName}', '${pcName}')">📢 Aviso</button>
+                                ${deleteBtn}
+                                ${pc.teamviewerId ? `<span class="remote-icon tv-icon" title="TeamViewer: ${pc.teamviewerId}">T</span>` : ''}
+                                ${pc.anydeskId ? `<span class="remote-icon ad-icon" title="AnyDesk: ${pc.anydeskId}">A</span>` : ''}
                             </div>
                             
-                            <div class="last-update">Actualizado: ${formatTime(pc.lastUpdate)}</div>
+                            <div class="pc-details" id="details-${pcId}">
+                                <div class="detail-row"><span class="detail-label">Sistema</span><span>${pc.system?.os || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">CPU</span><span>${pc.cpu?.model || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">RAM Total</span><span>${pc.ram?.total ? Math.round(pc.ram.total/1024) + ' GB' : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Disco</span><span>${pc.disk?.type || 'N/A'} - ${pc.disk?.total ? Math.round(pc.disk.total) + ' GB' : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">IP</span><span>${pc.network?.ip || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">SQL Server</span><span>${pc.sqlServer?.status || 'N/A'}</span></div>
+                                ${pc.teamviewerId ? `<div class="detail-row"><span class="detail-label">TeamViewer</span><span>${pc.teamviewerId}</span></div>` : ''}
+                                ${pc.anydeskId ? `<div class="detail-row"><span class="detail-label">AnyDesk</span><span>${pc.anydeskId}</span></div>` : ''}
+                            </div>
                         </div>
                     `;
                 }
@@ -1120,18 +1524,15 @@
             content.innerHTML = html;
         }
         
-        // Toggle detalles
         function toggleDetails(pcId) {
             const details = document.getElementById(`details-${pcId}`);
             details.classList.toggle('show');
         }
         
-        // Filtrar
         function filterData() {
             const search = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.sucursal-card');
             
-            cards.forEach(card => {
+            document.querySelectorAll('.sucursal-card').forEach(card => {
                 const sucursal = card.dataset.sucursal.toLowerCase();
                 const pcs = card.querySelectorAll('.pc-item');
                 let showCard = false;
@@ -1147,20 +1548,27 @@
             });
         }
         
-        // Modal de alerta
         function showAlertModal(sucursal, pcName) {
             const modal = document.getElementById('modal');
             modal.style.display = 'flex';
             modal.innerHTML = `
                 <div class="modal-content">
-                    <h3>📢 Enviar Alerta a ${pcName}</h3>
+                    <h3>📢 Enviar Aviso a ${pcName}</h3>
+                    <p style="color: rgba(255,255,255,0.6); margin-bottom: 20px;">Sucursal: ${sucursal}</p>
+                    
+                    <label>Tipo:</label>
                     <select id="alertType">
                         <option value="Info">ℹ️ Información</option>
                         <option value="Warning">⚠️ Advertencia</option>
                         <option value="Critical">🚨 Crítico</option>
                     </select>
-                    <input type="text" id="alertTitle" placeholder="Título de la alerta">
-                    <textarea id="alertMessage" placeholder="Mensaje de la alerta"></textarea>
+                    
+                    <label>Título:</label>
+                    <input type="text" id="alertTitle" placeholder="Título del aviso">
+                    
+                    <label>Mensaje:</label>
+                    <textarea id="alertMessage" placeholder="Escribí el mensaje..."></textarea>
+                    
                     <div class="modal-buttons">
                         <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
                         <button class="btn-send" onclick="sendAlert('${sucursal}', '${pcName}')">Enviar</button>
@@ -1179,28 +1587,36 @@
             const message = document.getElementById('alertMessage').value;
             
             if (!title || !message) {
-                alert('Completa todos los campos');
+                alert('Completá todos los campos');
                 return;
             }
             
+            const notification = {
+                type, title, message,
+                show: true,
+                createdAt: new Date().toISOString(),
+                sentBy: currentUser.username
+            };
+            
             try {
-                const url = `https://monitoreo-sucursales-default-rtdb.firebaseio.com/notifications/${sucursal}/${pcName}.json`;
-                await fetch(url, {
+                await fetch(`${NOTIF_URL}/${sucursal}/${pcName}.json`, {
                     method: 'PUT',
-                    body: JSON.stringify({
-                        type, title, message,
-                        show: true,
-                        createdAt: new Date().toISOString()
-                    })
+                    body: JSON.stringify(notification)
                 });
                 closeModal();
-                alert('✅ Alerta enviada');
+                alert('✅ Aviso enviado correctamente');
+                loadData();
             } catch (error) {
                 alert('❌ Error: ' + error.message);
             }
         }
         
         async function deletePC(sucursal, pcName) {
+            if (!canDelete()) {
+                alert('No tenés permisos para eliminar');
+                return;
+            }
+            
             if (!confirm(`¿Eliminar ${pcName} de ${sucursal}?`)) return;
             
             try {
@@ -1210,6 +1626,9 @@
                 alert('❌ Error: ' + error.message);
             }
         }
+        
+        // Iniciar app
+        initApp();
     </script>
 </body>
 </html>
