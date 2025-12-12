@@ -1488,9 +1488,9 @@
                                     </div>
                                 </div>
                                 <div class="metric">
-                                    <div class="metric-label">⏱️</div>
-                                    <div class="metric-value text-gray" style="font-size: 11px;">
-                                        ${formatTime(pc.lastUpdate)}
+                                    <div class="metric-label">⏱️ UPTIME</div>
+                                    <div class="metric-value text-green" style="font-size: 12px;">
+                                        ${pc.system?.uptime || 'N/A'}
                                     </div>
                                 </div>
                             </div>
@@ -1499,8 +1499,8 @@
                                 <button class="btn-details" onclick="toggleDetails('${pcId}')">📋 Detalles</button>
                                 <button class="btn-alert" onclick="showAlertModal('${sucName}', '${pcName}')">📢 Aviso</button>
                                 ${deleteBtn}
-                                ${getRemoteIcon(pc, 'tv')}
-                                ${getRemoteIcon(pc, 'ad')}
+                                ${getRemoteBtn(pc, 'tv')}
+                                ${getRemoteBtn(pc, 'ad')}
                             </div>
                             
                             <div class="pc-details" id="details-${pcId}">
@@ -1509,7 +1509,7 @@
                                 <div class="detail-row"><span class="detail-label">RAM Total</span><span>${getRamTotal(pc)}</span></div>
                                 <div class="detail-row"><span class="detail-label">Disco</span><span>${getDiskInfo(pc)}</span></div>
                                 <div class="detail-row"><span class="detail-label">IP</span><span>${pc.network?.ip || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Uptime</span><span>${pc.system?.uptime || 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Última actualización</span><span>${formatTime(pc.lastUpdate)}</span></div>
                                 <div class="detail-row"><span class="detail-label">SQL Server</span><span>${getSqlStatus(pc)}</span></div>
                                 <div class="detail-row"><span class="detail-label">Fabricante</span><span>${pc.system?.manufacturer || ''} ${pc.system?.model || ''}</span></div>
                                 <div class="detail-row"><span class="detail-label">Serial</span><span>${pc.system?.serial || 'N/A'}</span></div>
@@ -1528,6 +1528,18 @@
         }
         
         // Funciones auxiliares para leer datos
+        function getRemoteBtn(pc, type) {
+            let id = null;
+            if (type === 'tv') {
+                id = pc.remote?.teamviewerId || pc.teamviewerId;
+                if (id) return `<span class="remote-icon tv-icon" title="TeamViewer: ${id}">T</span><span style="font-size: 11px; color: rgba(255,255,255,0.7); margin-left: 2px; margin-right: 8px;">${id}</span>`;
+            } else {
+                id = pc.remote?.anydeskId || pc.anydeskId;
+                if (id) return `<span class="remote-icon ad-icon" title="AnyDesk: ${id}">A</span><span style="font-size: 11px; color: rgba(255,255,255,0.7); margin-left: 2px;">${id}</span>`;
+            }
+            return '';
+        }
+        
         function getRemoteIcon(pc, type) {
             let id = null;
             if (type === 'tv') {
