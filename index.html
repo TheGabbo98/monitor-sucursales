@@ -1499,23 +1499,22 @@
                                 <button class="btn-details" onclick="toggleDetails('${pcId}')">📋 Detalles</button>
                                 <button class="btn-alert" onclick="showAlertModal('${sucName}', '${pcName}')">📢 Aviso</button>
                                 ${deleteBtn}
-                                ${pc.teamviewerId || pc.remote?.teamviewerId ? `<span class="remote-icon tv-icon" title="TeamViewer: ${pc.teamviewerId || pc.remote?.teamviewerId}">T</span>` : ''}
-                                ${pc.anydeskId || pc.remote?.anydeskId ? `<span class="remote-icon ad-icon" title="AnyDesk: ${pc.anydeskId || pc.remote?.anydeskId}">A</span>` : ''}
+                                ${getRemoteIcon(pc, 'tv')}
+                                ${getRemoteIcon(pc, 'ad')}
                             </div>
                             
                             <div class="pc-details" id="details-${pcId}">
                                 <div class="detail-row"><span class="detail-label">Sistema</span><span>${pc.system?.os || 'N/A'}</span></div>
                                 <div class="detail-row"><span class="detail-label">CPU</span><span>${pc.cpu?.model || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">RAM Total</span><span>${pc.ram?.totalGB ? pc.ram.totalGB + ' GB' : (pc.ram?.total ? Math.round(pc.ram.total/1024) + ' GB' : 'N/A')}</span></div>
-                                <div class="detail-row"><span class="detail-label">Disco</span><span>${pc.disk?.type || 'N/A'} - ${pc.disk?.totalGB ? pc.disk.totalGB + ' GB' : (pc.disk?.total ? Math.round(pc.disk.total) + ' GB' : 'N/A')}</span></div>
+                                <div class="detail-row"><span class="detail-label">RAM Total</span><span>${getRamTotal(pc)}</span></div>
+                                <div class="detail-row"><span class="detail-label">Disco</span><span>${getDiskInfo(pc)}</span></div>
                                 <div class="detail-row"><span class="detail-label">IP</span><span>${pc.network?.ip || 'N/A'}</span></div>
                                 <div class="detail-row"><span class="detail-label">Uptime</span><span>${pc.system?.uptime || 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">SQL Server</span><span>${pc.system?.sqlRunning === true ? '✅ Corriendo' : pc.system?.sqlRunning === false ? '❌ Detenido' : (pc.sqlServer?.status || 'N/A')}</span></div>
-                                <div class="detail-row"><span class="detail-label">Fabricante</span><span>${pc.system?.manufacturer || 'N/A'} ${pc.system?.model || ''}</span></div>
+                                <div class="detail-row"><span class="detail-label">SQL Server</span><span>${getSqlStatus(pc)}</span></div>
+                                <div class="detail-row"><span class="detail-label">Fabricante</span><span>${pc.system?.manufacturer || ''} ${pc.system?.model || ''}</span></div>
                                 <div class="detail-row"><span class="detail-label">Serial</span><span>${pc.system?.serial || 'N/A'}</span></div>
-                                ${pc.teamviewerId || pc.remote?.teamviewerId ? `<div class="detail-row"><span class="detail-label">TeamViewer</span><span>${pc.teamviewerId || pc.remote?.teamviewerId}</span></div>` : ''}
-                                ${pc.anydeskId || pc.remote?.anydeskId ? `<div class="detail-row"><span class="detail-label">AnyDesk</span><span>${pc.anydeskId || pc.remote?.anydeskId}</span></div>` : ''}
-                            </div>
+                                ${getRemoteDetail(pc, 'teamviewer')}
+                                ${getRemoteDetail(pc, 'anydesk')}
                             </div>
                         </div>
                     `;
@@ -1526,6 +1525,57 @@
             
             html += '</div>';
             content.innerHTML = html;
+        }
+        
+        // Funciones auxiliares para leer datos
+        function getRemoteIcon(pc, type) {
+            let id = null;
+            if (type === 'tv') {
+                id = pc.remote?.teamviewerId || pc.teamviewerId;
+                if (id) return `<span class="remote-icon tv-icon" title="TeamViewer: ${id}">T</span>`;
+            } else {
+                id = pc.remote?.anydeskId || pc.anydeskId;
+                if (id) return `<span class="remote-icon ad-icon" title="AnyDesk: ${id}">A</span>`;
+            }
+            return '';
+        }
+        
+        function getRemoteDetail(pc, type) {
+            let id = null;
+            let label = '';
+            if (type === 'teamviewer') {
+                id = pc.remote?.teamviewerId || pc.teamviewerId;
+                label = 'TeamViewer';
+            } else {
+                id = pc.remote?.anydeskId || pc.anydeskId;
+                label = 'AnyDesk';
+            }
+            if (id) return `<div class="detail-row"><span class="detail-label">${label}</span><span>${id}</span></div>`;
+            return '';
+        }
+        
+        function getRamTotal(pc) {
+            if (pc.ram?.totalGB) return pc.ram.totalGB + ' GB';
+            if (pc.ram?.total) {
+                const gb = pc.ram.total > 1000 ? Math.round(pc.ram.total / 1024) : pc.ram.total;
+                return gb + ' GB';
+            }
+            return 'N/A';
+        }
+        
+        function getDiskInfo(pc) {
+            const type = pc.disk?.type || '';
+            let size = 'N/A';
+            if (pc.disk?.totalGB) size = pc.disk.totalGB + ' GB';
+            else if (pc.disk?.total) size = Math.round(pc.disk.total) + ' GB';
+            return type ? `${type} - ${size}` : size;
+        }
+        
+        function getSqlStatus(pc) {
+            if (pc.system?.sqlRunning === true) return '✅ Corriendo';
+            if (pc.system?.sqlRunning === false) return '❌ Detenido';
+            if (pc.sqlServer?.status) return pc.sqlServer.status;
+            return 'N/A';
         }
         
         function toggleDetails(pcId) {
